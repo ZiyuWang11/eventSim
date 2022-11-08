@@ -5,6 +5,10 @@
 #include <string>
 #include <vector>
 
+extern int timeGlobal;
+extern const int dataPrecision;
+extern const int busWidth; 
+
 class Buffer
 {
 private:
@@ -25,20 +29,20 @@ public:
     Buffer();
 
     // Constructor
-    Buffer(size_t bufferSize = 0, size_t bufferDepth = 0);
+    Buffer(size_t bufferSize = 0, size_t bufferDepth = 0, size_t sizeFM = 0, size_t sizeK = 0);
 
     // check buffer status
     bool isFull() const;
 
     // check array for sending data
-    bool sendRdy() const;
+    bool sendRdy(bool arrayRdy = 1) const;
 
     // send data to array
     // constrained by bus width
     std::vector<std::vector<uint8_t>> sendData();
 
     // check previous layer for loading data
-    bool laodRdy() const;
+    bool loadRdy() const;
 
     // load data from previous layer
     // constrained by bus width
@@ -46,12 +50,12 @@ public:
 
     // Record event - load/send data, buffer full
     // Simple print now, update it when event table is ready
-    void eventWrapper(int eventTime, string& event) const;
+    void eventWrapper(int eventTime, std::string& event) const;
 
     // Debug code
     void visTest() const;
 
     // Destructor
     ~Buffer();
-}
+};
 #endif //BUFFER_H_
