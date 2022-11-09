@@ -28,14 +28,15 @@ private:
     int devicePrecision_;
     size_t arraySizeX_; // width
     size_t arraySizeY_; // height
+    size_t numADC_;
 
     size_t arrayNumX_;
     size_t arrayNumY_;
 
     // Latency configuration
-    // static int latencyMVM_;
-    // static int concHTree_;
-    // static int addHTree_;
+    int latencyMVM_;
+    const static int concHTree_ = 1;
+    const static int addHTree_ = 1;
     
     // Weight
     MatrixXf weight_;
@@ -52,7 +53,10 @@ public:
     Tile();
     
     // Constructor
-    Tile(int state = done, size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY, MatrixXf weight);
+    Tile(int state = done, size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY,size_t numADC, const MatrixXf& weight);
+
+    // set latency for a layer MVM
+    void setLatency();
 
     // check load
     bool loadRdy() const {state != compute;}
