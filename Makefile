@@ -5,7 +5,8 @@ TARGET = test_program
 
 BUILD_DIR = ./build
 
-SRCS = $(wildcard *.cpp)
+//SRCS = $(wildcard *.cpp)
+SRCS = tile.cpp tile_test.cpp
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:.o=.d)
 

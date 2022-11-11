@@ -17,7 +17,8 @@ private:
     // compute_done - array done, output register pop data to LUT, 
     //                input register can load data from buffer
     // done - all data send to LUT, can load data or compute
-    int state_;
+    int inputState_;
+    int arrayState_;
     
     // NN model configuration
     size_t sizeK_;
@@ -39,39 +40,43 @@ private:
     const static int addHTree_ = 1;
     
     // Weight
-    MatrixXf weight_;
+    Eigen::MatrixXf weight_;
     // Input register
-    VectorXf input_;
+    Eigen::VectorXf input_;
     // Output register
-    VectorXf output_;
+    Eigen::VectorXf output_;
 
 public:
-    friend class Buffer;
+    //friend class Buffer;
+    enum {isRdy, notRdy};
     enum {compute, compute_done, done};
     
     // default Constructor
     Tile();
     
     // Constructor
-    Tile(int state = done, size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY,size_t numADC, const MatrixXf& weight);
+    Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY,size_t numADC, const Eigen::MatrixXf& weight);
 
     // set latency for a layer MVM
     void setLatency();
 
     // check load
-    bool loadRdy() const {state != compute;}
+    bool inputRdy() const {return inputState_ == notRdy;}
+    
+    // check compute
+    bool compRdy() const {return arrayState_ == done;}
+
+    // check result
+    bool outputRdy() const {return arrayState_ == compute_done;}
     
     // Dataloader
-    void loadData(Buffer& buffer);
+    void loadData(std::vector<std::vector<uint8_t>> data);
 
-    // check compute
-    bool compRdy() const {state == done;}
-    
     // MVM computation
     void computeMVM();
 
     // get output to LUT
-    VectorXf getOutput();
+    std::vector<uint8_t> getOutput();
  
     // Record event - load/send data, buffer full
     // Simple print now, update it when event table is ready

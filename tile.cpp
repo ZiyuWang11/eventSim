@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <Eigen/Dense>
+#include "tile.h"
 
 extern int timeGlobal;
 extern const int dataPrecision;
@@ -13,28 +14,30 @@ extern const int busWidth;
 Tile::Tile()
 {
     std::cout << "Default Constructor for Tile.\n";
-    state_ = done;
+    inputState_ = notRdy;
+    arrayState_ = done;
     sizeK_ = 3;
     numK_ = 3;
     channelDepth_ = 3;
     devicePrecision_ = 4;
     arraySizeX_ = 128;
     arraySizeY_ = 128;
-    numADC = 4;
+    numADC_ = 4;
     weight_.resize(sizeK_ * sizeK_ * channelDepth_, numK_);
     weight_.setZero();
     input_.resize(sizeK_ * sizeK_ * channelDepth_);
     input_.setZero();
-    output_resize(numK_);
+    output_.resize(numK_);
     output_.setZero();
 }
 
 // Constructor
-Tile::Tile(int state = done, size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const MatrixXf& weight)
+Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight)
 {
-    std::cout << "Constructor for Tile.\n"
+    std::cout << "Constructor for Tile.\n";
 
-    state_ = state;
+    inputState_ = notRdy;
+    arrayState_ = done;
 
     // NN model configuration
     sizeK_ = sizeK;
@@ -48,12 +51,12 @@ Tile::Tile(int state = done, size_t sizeK, size_t numK, size_t channelDepth, int
 
     weight_ = weight;
 
-    arrayNumX_ = (2 * weight_.col() * dataPrecision - 1) / devicePrecision_ / arraySizeX_+ 1;
-    arrayNumY_ = (weight_.row() - 1) / arraySizeY_ + 1;
+    arrayNumX_ = (2 * weight_.cols() * dataPrecision - 1) / devicePrecision_ / arraySizeX_+ 1;
+    arrayNumY_ = (weight_.rows() - 1) / arraySizeY_ + 1;
 
     input_.resize(sizeK_ * sizeK_ * channelDepth_);
     input_.setZero();
-    output_resize(numK_);
+    output_.resize(numK_);
     output_.setZero();
 
     latencyMVM_ = 10;
@@ -72,33 +75,75 @@ void Tile::setLatency()
 }
     
 // Dataloader
-void loadData(Buffer& buffer)
+// If compute_done, input buffer can load data
+void Tile::loadData(std::vector<std::vector<uint8_t>> data)
 {
-    // convert data to Eigen
-    // reshape?
-    // write to input buffer
-    // event - load done
+    if (inputRdy()) {
+        // event - load done
+        // event time handled in buffer, only report load done here
+        std::string eventName = "Loaded Data to Input Register";
+        eventWrapper(timeGlobal, eventName);
+    
+        // Load input data
+        // std::vector<vector<uint8_t>> recvData = buffer.sendData();
+        std::vector<std::vector<uint8_t>> recvData = data;
+        // reshape received data to 1D vector fashion
+        std::vector<float> flattenData;
+        for (auto const& v: recvData) {
+            flattenData.insert(flattenData.end(), v.begin(), v.end());
+        }
+        // convertdata to Eigen Vector
+        input_ = Eigen::Map<Eigen::VectorXf>(flattenData.data(), flattenData.size());
+
+        inputState_ = isRdy;
+    } else {
+        std::string eventName = "Hold dataloading";
+        eventWrapper(timeGlobal, eventName);
+    }
 }
     
 // MVM computation
-void computeMVM()
+// If done && dataRdy, start compute
+void Tile::computeMVM()
 {
-    // simple MVM using eigen
-    // record event
-    // result write to out reg
+    if (compRdy()) {
+        std::string eventName = "VMM computation";
+        eventWrapper(timeGlobal, eventName);
+        timeGlobal += latencyMVM_;
+    
+        output_ = input_ * weight_;
+
+        arrayState_ = compute_done;
+    } else {
+        std::string eventName = "Hold MVM computation";
+        eventWrapper(timeGlobal, eventName);
+    }
 }
 
 // get output to LUT
-VectorXf getOutput()
+std::vector<uint8_t> Tile::getOutput()
 {
     // depend on LUT number
     // implement with more detail when LUT done
     // label popped registers
+
+    //if (outputRdy()) {
+        std::string eventName = "send VMM output to LUT";
+        eventWrapper(timeGlobal, eventName);
+        
+        arrayState_ = done;
+        
+        std::vector<uint8_t> output(output_.data(), output_.data() + output_.size());
+        return output;
+    /*} else {
+        std::string eventName = "Hold VMM results";
+        break;
+    }*/
 }
  
 // Record event - load/send data, buffer full
 // Simple print now, update it when event table is ready
-void eventWrapper(int eventTime, std::string& event) const
+void Tile::eventWrapper(int eventTime, std::string& event) const
 {
     std::cout << "Time " << eventTime << " : " << event << std::endl;
 }
