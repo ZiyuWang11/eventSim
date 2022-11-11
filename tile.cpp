@@ -111,7 +111,7 @@ void Tile::computeMVM()
         eventWrapper(timeGlobal, eventName);
         timeGlobal += latencyMVM_;
     
-        output_ = input_ * weight_;
+        output_ = input_.transpose() * weight_;
 
         arrayState_ = compute_done;
     } else {
@@ -139,6 +139,23 @@ std::vector<uint8_t> Tile::getOutput()
         std::string eventName = "Hold VMM results";
         break;
     }*/
+}
+
+
+// Debug code
+void Tile::visTest() const
+{
+    printf("==========Tile Configuration==========\n");
+    printf("- Array Size[%d, %d]\n", (int)arraySizeX_, (int)arraySizeY_);
+    printf("- Array Numbers[%d, %d]\n", (int)arrayNumX_, (int)arrayNumY_);
+
+    printf("==========Data Configuration==========\n");
+    printf("- Input Register Data:\n");
+    std::cout << input_ << std::endl;
+    printf("- Weight Data:\n");
+    std::cout << weight_ << std::endl;
+    printf("- Output Register Data:\n");
+    std::cout << output_ << std::endl;
 }
  
 // Record event - load/send data, buffer full

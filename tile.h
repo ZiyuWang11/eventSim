@@ -82,6 +82,9 @@ public:
     // Simple print now, update it when event table is ready
     void eventWrapper(int eventTime, std::string& event) const;
 
+    // Debug code
+    void visTest() const;
+    
     // Destructor
     ~Tile();
 };
