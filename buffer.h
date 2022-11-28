@@ -25,28 +25,78 @@ private:
     std::vector<std::vector<uint8_t>> bufferData_;
 
 public:
-    // Default constructor
+    /* Constructor of the Buffer class
+     * Initialize buffer by the system configuration
+     * Set head and tail pointer
+     * Set number of clock cycles to pass the data to tile
+     */
     Buffer();
 
     // Constructor
     Buffer(size_t bufferSize = 0, size_t bufferDepth = 0, size_t sizeFM = 0, size_t sizeK = 0);
 
-    // check buffer status
+    ~Buffer();
+
+    //////////////////////////
+    //                      //
+    // Data loading methods //
+    //                      //
+    ////////////////////////// 
+    
+    /* Check buffer status
+     * If the buffer is not full, load data from previous layer or memory
+     * This method will be called by the owner layer sendRequest() method
+     */
+
     bool isFull() const;
 
-    // check array for sending data
-    bool sendRdy(bool arrayRdy = 1) const;
+    /* Set when the input data will be ready in the buffer
+     * When the data is ready, the buffer moves its head pointer
+     * Thie method will take the current time as an input, addition to the event time to get the ready time
+     * This method will be called by the owner layer setInputTime() method
+     */
 
-    // send data to array
-    // constrained by bus width
-    std::vector<std::vector<uint8_t>> sendData();
+    void setTime(); 
 
-    // check previous layer for loading data
-    bool loadRdy() const;
-
-    // load data from previous layer
-    // constrained by bus width
+    /* Load data from previous layer, the latency is constraint by the bus width
+     * The ordinary buffer operation are split into two phases
+     * (i) Write data into buffer when get it at time T
+     * (ii) Move the head pointer at event ready time T + T_{event}, which is defined by setTime()
+     * loadData() only covers step (i), it will be called by the owner layer setInput() method
+     */
     void loadData(std::vector<uint8_t> data);
+
+    /* A check time function to self-control the state
+     * Once an event is scheduled, check time every clock until event executed
+     * This method operate abovementioned step (ii)
+     */
+    void movePtr();
+ 
+    //////////////////////////
+    //                      //
+    // Data sending methods //
+    //                      //
+    ////////////////////////// 
+    
+    /* Check if buffer has data for a conv window
+     * If so, this will return true
+     * This method will be called by the owner layer buffer2tile() method
+     */
+
+    bool sendRdy() const; // true when input for a VMM is ready
+
+    /* Return the time to pass the input data from buffer to tile
+     * This time is a constant, use a reference at layer level maybe more efficient
+     * Change it latter if needed
+     */
+
+    int sendTime();
+
+    /* Return the input data send to array
+     * This method will be called by the owner layer setBuffer2tile() method
+     * The vector will later to set the input register of tile
+     */
+    std::vector<std::vector<uint8_t>> sendData();
 
     // Record event - load/send data, buffer full
     // Simple print now, update it when event table is ready
@@ -54,8 +104,5 @@ public:
 
     // Debug code
     void visTest() const;
-
-    // Destructor
-    ~Buffer();
 };
 #endif //BUFFER_H_
