@@ -111,6 +111,26 @@ public:
      */
 
     void setBuffer2tile();
+
+    //////////////////////////
+    //                      //
+    // Computation Controll //
+    //                      //
+    //////////////////////////
+
+    /* This method check the input register and array state to see if it is ready for comuption
+     * If it is ready, schedule the computation time and run computation
+     */
+    bool rdy4Comp() const;
+
+    /* This method set the event time for computation using Tile method
+     * States of input register and array will be changed when computation is done
+     */
+    void setComp();
+
+    /* Call array method to run computation
+     */ 
+    void execution();
 };   
 
 #endif // LAYER_H_
