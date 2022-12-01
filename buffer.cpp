@@ -4,7 +4,6 @@
 #include <vector>
 #include "buffer.h"
 
-extern int timeGlobal;
 extern const int dataPrecision;
 extern const int busWidth; 
 
@@ -12,27 +11,38 @@ extern const int busWidth;
 Buffer::Buffer()
 {
     std::cout << "Default constructor" << std::endl;
+    headEventBuffer_ = false;
+    headEventTime_ = -1;
+    tailEventBuffer_ = false;
+    tailEventTime_ = -1;
     bufferSize_ = 0;
     bufferDepth_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
-    sizeFM_ = 0;
-    sizeK_ = 0;
-    bufferData_.resize(bufferSize_, std::vector<uint8_t>(bufferDepth_, 0));
+    sizeFM_ = 28;
+    sizeK_ = 3;
+    stride_ = 1;
+    bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth_, 0));
 }
 
 
 // Constructor
-Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK)
+Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride)
 {
     std::cout << "Constructor" << std::endl;
+    headEventBuffer_ = false;
+    headEventTime_ = -1;
+    tailEventBuffer_ = false;
+    tailEventTime_ = -1;
     bufferSize_ = bufferSize;
     bufferDepth_ = bufferDepth;
     sizeFM_ = sizeFM;
     sizeK_ = sizeK;
+    stride_ = stride;
     headPtr_ = 0;
     tailPtr_ = 0;
-    bufferData_.resize(bufferSize_, std::vector<uint8_t>(bufferDepth, 0));
+    bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
+    buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
     std::cout << "Initialized buffer with size of " << bufferData_.size()
               << " with channel depth of " << bufferData_[0].size() << std::endl;
 }
@@ -43,30 +53,67 @@ bool Buffer::isFull() const
     return tailPtr_ == (headPtr_ + 1) % bufferSize_;
 }
 
+// shedule ready time for the input data
+void Buffer::setTime(long long int clockTime, int latency)
+{
+    // schedule the time for headPtr
+    if (headEventBuffer_) {
+        headEventTime_ = clockTime + latency;
+    }
+    // schedule the time for tailPtr
+    if (tailEventBuffer_) {
+        tailEventTime_ = clockTime + latency;
+    }
+}
+
+
+// load data to one block of the buffer
+void Buffer::loadData(std::vector<int> data)
+{
+    std::string eventName = "Buffer load data";
+    bufferData_[headPtr_] = data;
+    headEventBuffer_ = true;
+}
+
+// move headPtr for new data after loading latency
+void Buffer::movePtr(long long int clockTime)
+{
+    // load one data, headPtr moves forward
+    if (clockTime == headEventTime_) {
+        headPtr_ = (headPtr_ + 1) % bufferSize_;
+        ++dataNum_;
+        headEventBuffer_ = false; // event terminate
+    }
+    std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
+
+    // send one conv window
+    if (clockTime == tailEventTime_) {
+        tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+        dataNum_ -= stride_;
+        tailEventBuffer_ = false; // event terminate
+    }
+    std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
+}
+
 // check whether can send data to array
 // 1. heatPtr is above tailPtr a conv window
-// 2. array is at wait state
-// change this when friend class array is ready
-bool Buffer::sendRdy(/*Array& array*/ bool arrayRdy) const 
+bool Buffer::sendRdy() const 
 {
-   // if (/*array.getState()*/
-   //     arrayRdy && dataNum_ >= 2 * sizeFM_ + sizeK_) {
-   //     return true;
-   // }
-    return arrayRdy && dataNum_ >= 2 * sizeFM_ + sizeK_;
+    return dataNum_ >= 2 * sizeFM_ + sizeK_;
 }
+
+// return the latency for sending data from buffer to tile
+int Buffer::sendTime()
+{
+    return buffer2tileLatency_;
+}
+
 
 // send data to array - constrained by bus width
 // each data is 8 or 4 bit
-std::vector<std::vector<uint8_t>> Buffer::sendData()
+std::vector<std::vector<int>> Buffer::sendData()
 {
-    std::string eventName = "Buffer send data";
-    eventWrapper(timeGlobal, eventName);
-    int window = sizeK_ * sizeK_;
-    std::vector<std::vector<uint8_t>> dataConvWindow;
-    // calculate clock cycles to send all data fow a conv window
-    int tSend = window * bufferDepth_ * dataPrecision / busWidth + 1;
-    timeGlobal += tSend;
+    std::vector<std::vector<int>> dataConvWindow;
 
     for (size_t i = 0; i < sizeK_; ++i) {
         for (size_t j = 0; j < sizeK_; ++j) {
@@ -75,29 +122,7 @@ std::vector<std::vector<uint8_t>> Buffer::sendData()
         }
     }
 
-    ++tailPtr_;
-    --dataNum_;
-
     return dataConvWindow;
-}
-
-// check whether can load data
-// check previous layer implemented in high level Layer class
-bool Buffer::loadRdy() const
-{
-    return !isFull();
-}
-
-// load data to one block of the buffer
-void Buffer::loadData(std::vector<uint8_t> data)
-{
-    std::string eventName = "Buffer load data";
-    eventWrapper(timeGlobal, eventName);
-    bufferData_[headPtr_] = data;
-    headPtr_ = (headPtr_ + 1) % bufferSize_;
-    ++dataNum_;
-    int tLoad = bufferDepth_ * dataPrecision / busWidth + 1;
-    timeGlobal += tLoad;
 }
 
 // to be changed later

@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-extern int timeGlobal;
 extern const int dataPrecision;
 extern const int busWidth; 
 
@@ -18,11 +17,20 @@ private:
     size_t headPtr_; // head pointer of ring FIFO
     size_t tailPtr_; // tail pointer of ring FIFO
     // model configuration - which data to send
-    size_t sizeFM_;
-    size_t sizeK_;
+    size_t sizeFM_; // input feature map size, assume to be square
+    size_t sizeK_; // conv kernel size (2D)
+    size_t stride_; // stride of conv kernel
     // data
-    size_t dataNum_;
-    std::vector<std::vector<uint8_t>> bufferData_;
+    size_t dataNum_; // number of valid data in the bufer
+    std::vector<std::vector<int>> bufferData_;
+    // evnet timing
+    bool headEventBuffer_; // event for loading data
+    long long int headEventTime_; // event for loading data
+    bool tailEventBuffer_; // event for sending data
+    long long int tailEventTime_; // event for sending data
+    // data forwarding latency buffer -> array
+    // convWindow size * channel depth * dataPrecision / busWidth
+    int buffer2tileLatency_;
 
 public:
     /* Constructor of the Buffer class
@@ -33,7 +41,7 @@ public:
     Buffer();
 
     // Constructor
-    Buffer(size_t bufferSize = 0, size_t bufferDepth = 0, size_t sizeFM = 0, size_t sizeK = 0);
+    Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride);
 
     ~Buffer();
 
@@ -56,7 +64,7 @@ public:
      * This method will be called by the owner layer setInputTime() method
      */
 
-    void setTime(); 
+    void setTime(long long int clockTime, int latency); 
 
     /* Load data from previous layer, the latency is constraint by the bus width
      * The ordinary buffer operation are split into two phases
@@ -64,13 +72,13 @@ public:
      * (ii) Move the head pointer at event ready time T + T_{event}, which is defined by setTime()
      * loadData() only covers step (i), it will be called by the owner layer setInput() method
      */
-    void loadData(std::vector<uint8_t> data);
+    void loadData(std::vector<int> data);
 
     /* A check time function to self-control the state
      * Once an event is scheduled, check time every clock until event executed
      * This method operate abovementioned step (ii)
      */
-    void movePtr();
+    void movePtr(long long int clockTime);
  
     //////////////////////////
     //                      //
@@ -90,13 +98,13 @@ public:
      * Change it latter if needed
      */
 
-    int sendTime();
+    int sendTime(); 
 
     /* Return the input data send to array
      * This method will be called by the owner layer setBuffer2tile() method
      * The vector will later to set the input register of tile
      */
-    std::vector<std::vector<uint8_t>> sendData();
+    std::vector<std::vector<int>> sendData();
 
     // Record event - load/send data, buffer full
     // Simple print now, update it when event table is ready

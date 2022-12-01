@@ -6,7 +6,7 @@ TARGET = test_program
 BUILD_DIR = ./build
 
 //SRCS = $(wildcard *.cpp)
-SRCS = lut.cpp lut_test.cpp
+SRCS = buffer.cpp buffer_test.cpp
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:.o=.d)
 
