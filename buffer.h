@@ -52,11 +52,11 @@ public:
     ////////////////////////// 
     
     /* Check buffer status
-     * If the buffer is not full, load data from previous layer or memory
+     * If the buffer is not full, and not loading data load data from previous layer or memory
      * This method will be called by the owner layer sendRequest() method
      */
 
-    bool isFull() const;
+    bool loadRdy() const;
 
     /* Set when the input data will be ready in the buffer
      * When the data is ready, the buffer moves its head pointer
@@ -64,7 +64,7 @@ public:
      * This method will be called by the owner layer setInputTime() method
      */
 
-    void setTime(long long int clockTime, int latency); 
+	void setTime(long long int clockTime, int latency = 0); 
 
     /* Load data from previous layer, the latency is constraint by the bus width
      * The ordinary buffer operation are split into two phases
@@ -79,14 +79,14 @@ public:
      * This method operate abovementioned step (ii)
      */
     void movePtr(long long int clockTime);
- 
+
     //////////////////////////
     //                      //
     // Data sending methods //
     //                      //
     ////////////////////////// 
     
-    /* Check if buffer has data for a conv window
+    /* Check if buffer has data for a conv window and not sending data
      * If so, this will return true
      * This method will be called by the owner layer buffer2tile() method
      */
@@ -105,10 +105,6 @@ public:
      * The vector will later to set the input register of tile
      */
     std::vector<std::vector<int>> sendData();
-
-    // Record event - load/send data, buffer full
-    // Simple print now, update it when event table is ready
-    void eventWrapper(int eventTime, std::string& event) const;
 
     // Debug code
     void visTest() const;

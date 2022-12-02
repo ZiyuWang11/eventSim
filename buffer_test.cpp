@@ -9,13 +9,40 @@ const int dataPrecision = 8;
 
 int main()
 {
+    long long int clock = 1;
+    int inLatency = 9;
+
     size_t bufferSize = 19;
     size_t bufferDepth = 2;
-    size_t sizeFM = 8;
+    size_t sizeFM = 5;
     size_t sizeK = 3;
     size_t stride = 2;
 
     Buffer test_buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride);
+
+    while (clock < 250) {
+        // Try to write new data
+        int value = (int)clock;
+        if (test_buffer.loadRdy()) {
+            std::vector<int> data(bufferDepth, value);
+            test_buffer.loadData(data);
+            test_buffer.setTime(clock, inLatency);
+        }
+
+        // Try to send data from buffer
+        if (test_buffer.sendRdy()) {
+            int time = test_buffer.sendTime();
+            std::vector<std::vector<int>> outdata = test_buffer.sendData();
+            std::cout << "Schedule sending data at " << clock + time << std::endl;
+        }
+        // State updata
+        test_buffer.movePtr(clock);
+        
+        // Visualize buffer
+        if (clock%10 == 0) test_buffer.visTest();
+
+        ++clock;
+    }
 
     //test_buffer.visTest();
     //size_t value = 1;

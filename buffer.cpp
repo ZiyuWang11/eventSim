@@ -22,6 +22,7 @@ Buffer::Buffer()
     sizeFM_ = 28;
     sizeK_ = 3;
     stride_ = 1;
+    dataNum_ = 0;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth_, 0));
 }
 
@@ -41,16 +42,17 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     stride_ = stride;
     headPtr_ = 0;
     tailPtr_ = 0;
+    dataNum_ = 0;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
     std::cout << "Initialized buffer with size of " << bufferData_.size()
               << " with channel depth of " << bufferData_[0].size() << std::endl;
 }
 
-// check buffer status
-bool Buffer::isFull() const
+// check if ready to load new data
+bool Buffer::loadRdy() const
 {
-    return tailPtr_ == (headPtr_ + 1) % bufferSize_;
+    return (tailPtr_ != (headPtr_ + 1) % bufferSize_) && !headEventBuffer_;
 }
 
 // shedule ready time for the input data
@@ -62,7 +64,7 @@ void Buffer::setTime(long long int clockTime, int latency)
     }
     // schedule the time for tailPtr
     if (tailEventBuffer_) {
-        tailEventTime_ = clockTime + latency;
+        tailEventTime_ = clockTime + buffer2tileLatency_;
     }
 }
 
@@ -83,23 +85,23 @@ void Buffer::movePtr(long long int clockTime)
         headPtr_ = (headPtr_ + 1) % bufferSize_;
         ++dataNum_;
         headEventBuffer_ = false; // event terminate
+        std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
     }
-    std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
 
     // send one conv window
     if (clockTime == tailEventTime_) {
         tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
         dataNum_ -= stride_;
         tailEventBuffer_ = false; // event terminate
+        std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
     }
-    std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
 }
 
 // check whether can send data to array
 // 1. heatPtr is above tailPtr a conv window
 bool Buffer::sendRdy() const 
 {
-    return dataNum_ >= 2 * sizeFM_ + sizeK_;
+    return (dataNum_ >= 2 * sizeFM_ + sizeK_) && !tailEventBuffer_;
 }
 
 // return the latency for sending data from buffer to tile
@@ -122,13 +124,10 @@ std::vector<std::vector<int>> Buffer::sendData()
         }
     }
 
-    return dataConvWindow;
-}
+    // Schedule sending event
+    tailEventBuffer_ = true;
 
-// to be changed later
-void Buffer::eventWrapper(int eventTime, std::string& event) const
-{
-    std::cout << "Time " << eventTime << " : " << event << std::endl;
+    return dataConvWindow;
 }
 
 // Debug code for test only
