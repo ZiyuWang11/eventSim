@@ -76,30 +76,6 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
                  ;
 }
 
-// State change methods
-void Tile::setTime(long long int clockTime, int latency)
-{
-    // Schedule an event for loading input data
-    if (inputEventTile_) {
-        inputEventTime_ = clockTime + latency; // This latency from Buffer
-    }
-
-    // Schedule an event for VMM computation
-    if (arrayEventTile_) {
-        arrayEventTime_ = clockTime + latencyVMM_; 
-    }
-
-    // Schedule an event for sending output data
-    if (outputEventTile_) {
-        outputEventTime_ = clockTime + latency; // This latency from LUT
-    }
-
-    // Schedule an event for VMM computation
-    if (arrayEventTile_) {
-        arrayEventTime_ = clockTime + latencyVMM_; 
-    }
-}
-
 void Tile::changeState(long long int clockTime)
 {
     // Input loading done
@@ -111,6 +87,7 @@ void Tile::changeState(long long int clockTime)
 
     // Computation done
     if (clockTime == arrayEventTime_) {
+        inputState_ = notRdy;
         arrayState_ = compute_done;
         arrayEventTile_ = false; // array execution terminated
         std::cout << "VMM computation done at Clock=" << clockTime << std::endl;
@@ -127,7 +104,14 @@ void Tile::changeState(long long int clockTime)
 // Data loading methods
 bool Tile::loadRdy() const
 {
-    return inputState_ == notRdy;
+    return (inputState_ == notRdy) && !inputEventTile_;
+}
+
+// Set input ready time
+void Tile::setInTime(long long int clockTime, int latency)
+{
+    // Schedule an event for loading input data
+    inputEventTime_ = clockTime + latency; // This latency from Buffer
 }
 
 // If compute_done, input buffer can load data
@@ -155,6 +139,13 @@ bool Tile::compRdy() const
     return (inputState_ == isRdy) && (arrayState_ == done);
 }
 
+// Set computation time
+void Tile::setCompTime(long long int clockTime)
+{
+    // Schedule an event for VMM computation
+    arrayEventTime_ = clockTime + latencyVMM_;
+}
+
 // If done && dataRdy, start compute
 void Tile::computeVMM()
 {
@@ -171,7 +162,13 @@ void Tile::computeVMM()
 // Output Methods
 bool Tile::outputRdy() const
 {
-    return arrayState_ == compute_done;
+    return (arrayState_ == compute_done) && !outputEventTile_;
+}
+
+void Tile::setOutTime(long long int clockTime, int latencyOut)
+{
+    // Schedule an event for sending output data
+    outputEventTime_ = clockTime + latencyOut; // This latency from LUT
 }
 
 // get output to LUT

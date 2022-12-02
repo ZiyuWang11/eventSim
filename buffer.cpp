@@ -56,16 +56,10 @@ bool Buffer::loadRdy() const
 }
 
 // shedule ready time for the input data
-void Buffer::setTime(long long int clockTime, int latency)
+void Buffer::setInTime(long long int clockTime, int latency)
 {
     // schedule the time for headPtr
-    if (headEventBuffer_) {
-        headEventTime_ = clockTime + latency;
-    }
-    // schedule the time for tailPtr
-    if (tailEventBuffer_) {
-        tailEventTime_ = clockTime + buffer2tileLatency_;
-    }
+    headEventTime_ = clockTime + latency;
 }
 
 
@@ -110,6 +104,12 @@ int Buffer::sendTime()
     return buffer2tileLatency_;
 }
 
+// shedule ready time for the input data
+void Buffer::setOutTime(long long int clockTime)
+{
+    // schedule the time for tailPtr
+    tailEventTime_ = clockTime + buffer2tileLatency_;
+}
 
 // send data to array - constrained by bus width
 // each data is 8 or 4 bit

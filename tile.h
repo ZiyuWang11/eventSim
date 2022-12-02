@@ -105,8 +105,6 @@ public:
      * Event to be scheduled: (i) VMM execution latency (ii) output data latnecy
      */
 
-    void setTime(long long int clockTime, int latency = 0);
-
     void changeState(long long int clockTime);
 
     ////////////////////////// 
@@ -123,6 +121,8 @@ public:
      */
 
     bool loadRdy() const;  // true for ready to load data
+
+    void setInTime(long long int clockTime, int latency);
 
     /* Load the data from Buffer.sendData() method to the input register Eigen::VectorXf input_
      * Data will be written instantly, but only can be used when the inputState_ == isRdy
@@ -143,6 +143,8 @@ public:
      */
 
     bool compRdy() const; // true if ready for MVM computation
+
+    void setCompTime(long long int clockTime);
 
     /* Once the input register state changes from notRdy to isRdy
      * The array state can change from done to comp instantly
@@ -170,6 +172,8 @@ public:
      */
 
     bool outputRdy() const;
+    
+    void setOutTime(long long int clockTime, int latency);
     
     /* Get the output data and convert from Eigen::VectorXf to std::vector<int>
      * This vector is the index to LUT, for 8-bit, it must be convert to [0, 255]

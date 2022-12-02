@@ -26,16 +26,18 @@ int main()
         if (test_buffer.loadRdy()) {
             std::vector<int> data(bufferDepth, value);
             test_buffer.loadData(data);
-            test_buffer.setTime(clock, inLatency);
+            test_buffer.setInTime(clock, inLatency);
         }
 
         // Try to send data from buffer
         if (test_buffer.sendRdy()) {
             int time = test_buffer.sendTime();
             std::vector<std::vector<int>> outdata = test_buffer.sendData();
-            std::cout << "Schedule sending data at " << clock + time << std::endl;
+            test_buffer.setOutTime(clock);
+            std::cout << "Send Latency is: " << time << std::endl;
         }
-        // State updata
+
+        // State update
         test_buffer.movePtr(clock);
         
         // Visualize buffer
