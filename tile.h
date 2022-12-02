@@ -5,7 +5,6 @@
 #include <string>
 #include <Eigen/Dense>
 
-extern int timeGlobal;
 extern const int dataPrecision;
 extern const int busWidth; 
 
@@ -35,9 +34,17 @@ private:
     size_t arrayNumY_;
 
     // Latency configuration
-    int latencyMVM_;
+    int latencyVMM_;
     const static int concHTree_ = 1;
     const static int addHTree_ = 1;
+
+    // event timing
+    bool inputEventTile_; // event for getting input from buffer
+    long long int inputEventTime_; // schedule event for input
+    bool arrayEventTile_; // event for computation
+    long long int arrayEventTime_; // schedule event for array
+    bool outputEventTile_; // event for ouput Tile -> LUT
+    long long int outputEventTime_; // schedule event for output
     
     // Weight
     Eigen::MatrixXf weight_;
@@ -82,10 +89,6 @@ public:
      * Event to be scheduled: (i) input data write to register latency (ii) VMM execution latency
      */
 
-    void setInputTime();
-
-    void changeInputState();
-    
     /* State controll methods for array and output register
      * Method setArrayTime() record the event time for array state changing
      * Method changeArrayState() check the global clock and changes state accordingly
@@ -102,9 +105,9 @@ public:
      * Event to be scheduled: (i) VMM execution latency (ii) output data latnecy
      */
 
-    void setArrayTime();
+    void setTime(long long int clockTime, int latency = 0);
 
-    void changeArrayState();
+    void changeState(long long int clockTime);
 
     ////////////////////////// 
     //                      //
@@ -119,14 +122,14 @@ public:
      * Called by the owner layer sendRequest() method for FC
      */
 
-    bool loadRdy() const {return inputState_ == notRdy;} // true for ready to load data
+    bool loadRdy() const;  // true for ready to load data
 
     /* Load the data from Buffer.sendData() method to the input register Eigen::VectorXf input_
      * Data will be written instantly, but only can be used when the inputState_ == isRdy
      * The state change is determined by the event time, find more detail in State Change methods
      * This method will be called by the owner layer setBuffer2Tile() method
      */ 
-    void loadData(std::vector<std::vector<uint8_t>> data);
+    void loadData(std::vector<std::vector<int>> data);
 
     ///////////////////////// 
     //                     //
@@ -139,7 +142,8 @@ public:
      * This method will be called by the owner layer rdy4Comp() method
      */
 
-    bool compRdy() const {return arrayState_ == done;}
+    bool compRdy() const; // true if ready for MVM computation
+
     /* Once the input register state changes from notRdy to isRdy
      * The array state can change from done to comp instantly
      * A corner case is output still holds data, at comp_done state, it will change to comp when all data are sent
@@ -165,18 +169,14 @@ public:
      * This method will be called by the owner layer getRequest() method
      */
 
-    bool outputRdy() const {return arrayState_ == compute_done;}
+    bool outputRdy() const;
     
     /* Get the output data and convert from Eigen::VectorXf to std::vector<int>
      * This vector is the index to LUT, for 8-bit, it must be convert to [0, 255]
      * This method will be called by the outData() of the owner layer method
      * And pass the data to LUT class
      */
-    std::vector<uint8_t> getOutput();
- 
-    // Record event - load/send data, buffer full
-    // Simple print now, update it when event table is ready
-    void eventWrapper(int eventTime, std::string& event) const;
+    std::vector<int> getOutput();
 
     // Debug code
     void visTest() const;

@@ -6,7 +6,6 @@
 #include <Eigen/Dense>
 #include "tile.h"
 
-extern int timeGlobal;
 extern const int dataPrecision;
 extern const int busWidth; 
 
@@ -49,6 +48,14 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
     arraySizeY_ = arraySizeY;
     numADC_ = numADC;
 
+    // event data initialization
+    inputEventTile_ = false;
+    inputEventTime_ = -1;
+    arrayEventTile_ = false;
+    arrayEventTime_ = -1;
+    outputEventTile_ = false;
+    outputEventTime_ = -1;
+
     weight_ = weight;
 
     arrayNumX_ = (2 * weight_.cols() * dataPrecision - 1) / devicePrecision_ / arraySizeX_+ 1;
@@ -59,112 +66,158 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
     output_.resize(numK_);
     output_.setZero();
 
-    latencyMVM_ = 10;
-}
-
-// set latency for a layer MVM
-// set more complex model with ADC config
-void Tile::setLatency()
-{
-    latencyMVM_ =  10 // array
+    // set latency for a layer VMM
+    // set more complex model with ADC config
+    latencyVMM_ =  10 // array
                  + 10 * ((arraySizeX_ - 1) / numADC_ + 1) // ADC conversion
                  + 2 // other digital logic
                  + (int)(log2(arrayNumX_ - 1) + 1) * concHTree_ // tile concacetenation
                  + (int)(log2(arrayNumY_ - 1) + 1) * addHTree_ // tile partial sum
                  ;
 }
-    
-// Dataloader
-// If compute_done, input buffer can load data
-void Tile::loadData(std::vector<std::vector<uint8_t>> data)
-{
-    if (inputRdy()) {
-        // event - load done
-        // event time handled in buffer, only report load done here
-        std::string eventName = "Loaded Data to Input Register";
-        eventWrapper(timeGlobal, eventName);
-    
-        // Load input data
-        // std::vector<vector<uint8_t>> recvData = buffer.sendData();
-        std::vector<std::vector<uint8_t>> recvData = data;
-        // reshape received data to 1D vector fashion
-        std::vector<float> flattenData;
-        for (auto const& v: recvData) {
-            flattenData.insert(flattenData.end(), v.begin(), v.end());
-        }
-        // convertdata to Eigen Vector
-        input_ = Eigen::Map<Eigen::VectorXf>(flattenData.data(), flattenData.size());
 
+// State change methods
+void Tile::setTime(long long int clockTime, int latency)
+{
+    // Schedule an event for loading input data
+    if (inputEventTile_) {
+        inputEventTime_ = clockTime + latency; // This latency from Buffer
+    }
+
+    // Schedule an event for VMM computation
+    if (arrayEventTile_) {
+        arrayEventTime_ = clockTime + latencyVMM_; 
+    }
+
+    // Schedule an event for sending output data
+    if (outputEventTile_) {
+        outputEventTime_ = clockTime + latency; // This latency from LUT
+    }
+
+    // Schedule an event for VMM computation
+    if (arrayEventTile_) {
+        arrayEventTime_ = clockTime + latencyVMM_; 
+    }
+}
+
+void Tile::changeState(long long int clockTime)
+{
+    // Input loading done
+    if (clockTime == inputEventTime_) {
         inputState_ = isRdy;
-    } else {
-        std::string eventName = "Hold dataloading";
-        eventWrapper(timeGlobal, eventName);
+        inputEventTile_ = false; // loading data event terminated
+        std::cout << "Load data to input register at Clock=" << clockTime << std::endl;
+    }
+
+    // Computation done
+    if (clockTime == arrayEventTime_) {
+        arrayState_ = compute_done;
+        arrayEventTile_ = false; // array execution terminated
+        std::cout << "VMM computation done at Clock=" << clockTime << std::endl;
+    }
+  
+    // Output Sent
+    if (clockTime == outputEventTime_) {
+        arrayState_ = done;
+        outputEventTile_ = false; // output data terminated
+        std::cout << "Send result to next layer at Clock=" << clockTime << std::endl;
     }
 }
     
-// MVM computation
-// If done && dataRdy, start compute
-void Tile::computeMVM()
+// Data loading methods
+bool Tile::loadRdy() const
 {
-    if (compRdy()) {
-        std::string eventName = "VMM computation";
-        eventWrapper(timeGlobal, eventName);
-        timeGlobal += latencyMVM_;
-    
-        output_ = input_.transpose() * weight_;
+    return inputState_ == notRdy;
+}
 
-        arrayState_ = compute_done;
-    } else {
-        std::string eventName = "Hold MVM computation";
-        eventWrapper(timeGlobal, eventName);
+// If compute_done, input buffer can load data
+void Tile::loadData(std::vector<std::vector<int>> data)
+{
+    // Load input data
+    std::vector<std::vector<int>> recvData = data; // maybe unnecessary
+
+    // reshape received data to 1D vector fashion
+    std::vector<float> flattenData;
+    for (auto const& v: recvData) {
+        flattenData.insert(flattenData.end(), v.begin(), v.end());
     }
+
+    // convertdata to Eigen Vector
+    input_ = Eigen::Map<Eigen::VectorXf>(flattenData.data(), flattenData.size());
+
+    // set a loading event for the input register
+    inputEventTile_ = true;
+}
+    
+// MVM computation methods
+bool Tile::compRdy() const
+{
+    return (inputState_ == isRdy) && (arrayState_ == done);
+}
+
+// If done && dataRdy, start compute
+void Tile::computeVMM()
+{
+    // change array state to compute
+    arrayState_ = compute;
+
+    // VMM using Eigen package
+    output_ = input_.transpose() * weight_;
+
+    // set a computing event for the array
+    arrayEventTile_ = true;
+}
+
+// Output Methods
+bool Tile::outputRdy() const
+{
+    return arrayState_ == compute_done;
 }
 
 // get output to LUT
-std::vector<uint8_t> Tile::getOutput()
+std::vector<int> Tile::getOutput()
 {
-    // depend on LUT number
-    // implement with more detail when LUT done
-    // label popped registers
+    // Convert Eigen data in output register to std::vector in bus    
+    std::vector<int> output(output_.data(), output_.data() + output_.size());
 
-    //if (outputRdy()) {
-        std::string eventName = "send VMM output to LUT";
-        eventWrapper(timeGlobal, eventName);
-        
-        arrayState_ = done;
-        
-        std::vector<uint8_t> output(output_.data(), output_.data() + output_.size());
-        return output;
-    /*} else {
-        std::string eventName = "Hold VMM results";
-        break;
-    }*/
+    // set an output event for the output register
+    outputEventTile_ = true;
+    
+    return output;
 }
 
 
 // Debug code
 void Tile::visTest() const
 {
-    printf("==========Tile Configuration==========\n");
-    printf("- Array Size[%d, %d]\n", (int)arraySizeX_, (int)arraySizeY_);
-    printf("- Array Numbers[%d, %d]\n", (int)arrayNumX_, (int)arrayNumY_);
+    //printf("==========Tile Configuration==========\n");
+    //printf("- Array Size[%d, %d]\n", (int)arraySizeX_, (int)arraySizeY_);
+    //printf("- Array Numbers[%d, %d]\n", (int)arrayNumX_, (int)arrayNumY_);
 
-    printf("==========Data Configuration==========\n");
-    printf("- Input Register Data:\n");
-    std::cout << input_ << std::endl;
-    printf("- Weight Data:\n");
-    std::cout << weight_ << std::endl;
-    printf("- Output Register Data:\n");
-    std::cout << output_ << std::endl;
+    //printf("==========Data Configuration==========\n");
+    //printf("- Input Register Data:\n");
+    //std::cout << input_ << std::endl;
+    //printf("- Weight Data:\n");
+    //std::cout << weight_ << std::endl;
+    //printf("- Output Register Data:\n");
+    //std::cout << output_ << std::endl;
+
+    // Print input register state
+    switch (inputState_) {
+        case 0: printf("Input Register State: isRdy\n"); break;
+        case 1: printf("Input Register State: notRdy\n"); break;
+        default: printf("NONE\n"); break;
+    }
+ 
+    // Print array state
+    switch (arrayState_) {
+        case 0: printf("Array State: Compute\n"); break;
+        case 1: printf("Array State: Compute Done\n"); break;
+        case 2: printf("Array State: Done\n"); break;
+        default: printf("NONE\n"); break;
+    }
 }
  
-// Record event - load/send data, buffer full
-// Simple print now, update it when event table is ready
-void Tile::eventWrapper(int eventTime, std::string& event) const
-{
-    std::cout << "Time " << eventTime << " : " << event << std::endl;
-}
-
 // Destructor
 Tile::~Tile()
 {

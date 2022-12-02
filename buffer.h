@@ -64,7 +64,7 @@ public:
      * This method will be called by the owner layer setInputTime() method
      */
 
-	void setTime(long long int clockTime, int latency = 0); 
+    void setTime(long long int clockTime, int latency = 0); 
 
     /* Load data from previous layer, the latency is constraint by the bus width
      * The ordinary buffer operation are split into two phases

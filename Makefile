@@ -1,4 +1,4 @@
-CXX = g++
+CXX = g++ 
 CXXFLAGS = -g -Wall -std=c++17
 
 TARGET = test_program
@@ -6,7 +6,8 @@ TARGET = test_program
 BUILD_DIR = ./build
 
 //SRCS = $(wildcard *.cpp)
-SRCS = buffer.cpp buffer_test.cpp
+//SRCS = buffer.cpp buffer_test.cpp
+SRCS = tile.cpp tile_test.cpp
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:.o=.d)
 
