@@ -12,7 +12,7 @@ class LUT
 {
 private:
     // Output size from a tile
-    int outNum_;
+    size_t outNum_;
     // number of data to get from tile
     const int lutNum_;
     const std::string activationFunction_;
@@ -31,7 +31,7 @@ public:
     LUT();
 
     // Constructor - initialize LUT
-    LUT(int outNum, int lutNum = 1, std::string af = "ReLU");
+    LUT(size_t outNum, int lutNum = 1, std::string af = "ReLU");
 
     // Destructor
     ~LUT();

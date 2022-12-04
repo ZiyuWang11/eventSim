@@ -3,10 +3,16 @@
 #ifndef LAYER_H_
 #define LAYER_H_
 
+#include <cmath>
 #include <vector>
+#include <string>
+#include <Eigen/Dense>
 #include "buffer.h"
 #include "tile.h"
 #include "lut.h"
+
+extern const int dataPrecision;
+extern const int busWidth;
 
 class Layer
 {
@@ -20,7 +26,7 @@ public:
     /* Constructor of the Layer class
      * call other constructors to initialize sub-modules
      */
-    Layer();
+    Layer(size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af);
 
     ~Layer();
 

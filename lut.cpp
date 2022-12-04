@@ -16,7 +16,7 @@ LUT::LUT() : lutNum_(256), lutSize_(1)
 }
 
 // Constructor
-LUT::LUT(int outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(lutNum), activationFunction_(af), lutSize_((int) pow(2, dataPrecision))
+LUT::LUT(size_t outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(lutNum), activationFunction_(af), lutSize_((int) pow(2, dataPrecision))
 {
     std::cout << "Constructor" << std::endl;
    
