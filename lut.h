@@ -2,14 +2,23 @@
 #ifndef LUT_H_
 #define LUT_H_
 
-#include <iostream>
+#include <vector>
+#include <string>
+
+extern const int dataPrecision;
+extern const int busWidth;
 
 class LUT
 {
 private:
-    const size_t lutSize_;
+    // Output size from a tile
+    int outNum_;
     // number of data to get from tile
-    const size_t lutNum_;
+    const int lutNum_;
+    const std::string activationFunction_;
+    const int lutSize_;
+    // Latency to convert all outputs through LUT
+    int outLatency_;
     int* lutTable_;
 
 public:
@@ -22,7 +31,7 @@ public:
     LUT();
 
     // Constructor - initialize LUT
-    LUT(size_t lutSize = 256, size_t lutNum = 1);
+    LUT(int outNum, int lutNum = 1, std::string af = "ReLU");
 
     // Destructor
     ~LUT();
@@ -46,8 +55,16 @@ public:
     int getTime() const;
 
     // Get data from tile and conversion
-    int* compute(float* dataIn) const;
+    // int* compute(float* dataIn) const;
+    std::vector<int> compute(std::vector<int> dataIn) const;
 
+    ///////////////////
+    //               //
+    // Debug Methods //
+    //               //
+    ///////////////////
+
+    void showLUT() const;
 };
 
 #endif // LUT_H_
