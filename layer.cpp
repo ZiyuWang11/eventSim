@@ -82,7 +82,7 @@ bool Layer::getRequest() const
 // Send output data from tile to lut
 std::vector<int> Layer::outData()
 {
-    std::vector<int> output;
+    std::vector<int> output;;
     output = lut.compute(tile.getOutput());
 
     return output;
@@ -93,6 +93,12 @@ int Layer::outTime() const
 {
     // NOTE: pooling layer has no lut, think it later
     return lut.getTime();
+}
+
+// Schedule an output event change in tile
+void Layer::setOutTime(long long int clockTime)
+{
+    tile.setOutTime(clockTime, lut.getTime());
 }
 
 // Check if data can be send from buffer to tile
@@ -106,11 +112,35 @@ bool Layer::buffer2tile() const
 void Layer::setBuffer2Tile(long long int clockTime)
 {
     // Buffer send output data to tile input register
-    tile.loadData(buffer.sendData());
+    std::vector<std::vector<int>> data = buffer.sendData();
+    tile.loadData(data);
     // tile set the data loading latency
     tile.setInTime(clockTime, buffer.sendTime());
     // buffer set data sending latency for move pointer
     buffer.setOutTime(clockTime);
+}
+
+// Check if tile is ready for computation
+bool Layer::rdy4comp() const
+{
+    return tile.compRdy();
+}
+
+// Run VMM and schedule the event for computation
+void Layer::setComp(long long int clockTime)
+{
+    tile.computeVMM();
+    tile.setCompTime(clockTime);
+}
+
+// Change states of buffer and tile by checking clock
+void Layer::changeState(long long int clockTime)
+{
+    // Move the pointer in Buffer
+    buffer.movePtr(clockTime);
+ 
+    // change the tile states
+    tile.changeState(clockTime);
 }
 
 // Destructor

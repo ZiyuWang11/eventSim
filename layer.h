@@ -100,6 +100,11 @@ public:
  
     int outTime() const;
 
+    /* Get the output latency from the LUT
+     * Schedule a state change from compute done to done in Tile
+     */
+    void setOutTime(long long int clockTime);
+
     ///////////////////////////
     //                       //
     // Inter-layer Data Flow //  Following methods for conv layer only
@@ -128,22 +133,24 @@ public:
     /* This method check the input register and array state to see if it is ready for comuption
      * If it is ready, schedule the computation time and run computation
      */
-    bool rdy4Comp() const;
+    bool rdy4comp() const;
 
     /* This method set the event time for computation using Tile method
      * States of input register and array will be changed when computation is done
      */
-    void setComp();
-
-    /* Call array method to run computation
-     */ 
-    void execution();
+    void setComp(long long int clockTime);
 
     ///////////////////
     //               //
     // State Control //
     //               //
     ///////////////////
+
+    /* Move pointer of Buffer and Change state of Tile
+     * call Buffer.movePtr() and Tile.changeState methods
+     */
+  
+    void changeState(long long int clockTime);
 };   
 
 #endif // LAYER_H_
