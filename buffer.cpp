@@ -66,7 +66,6 @@ void Buffer::setInTime(long long int clockTime, int latency)
 // load data to one block of the buffer
 void Buffer::loadData(std::vector<int> data)
 {
-    std::string eventName = "Buffer load data";
     bufferData_[headPtr_] = data;
     headEventBuffer_ = true;
 }
@@ -79,7 +78,7 @@ void Buffer::movePtr(long long int clockTime)
         headPtr_ = (headPtr_ + 1) % bufferSize_;
         ++dataNum_;
         headEventBuffer_ = false; // event terminate
-        std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
+        // std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
     }
 
     // send one conv window
@@ -87,7 +86,7 @@ void Buffer::movePtr(long long int clockTime)
         tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
         dataNum_ -= stride_;
         tailEventBuffer_ = false; // event terminate
-        std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
+        // std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
     }
 }
 

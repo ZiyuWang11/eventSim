@@ -60,16 +60,15 @@ void Layer::setInputTime(long long int clockTime, Layer* prevLayer)
 }
 
 // Set the Input data
+void Layer::setInputFirst(std::vector<int> data)
+{
+    buffer.loadData(data);
+}
+
 void Layer::setInput(Layer* prevLayer)
 {
-    // Add another paramter to this method for first layer
-    // Maybe use cv::Mat to store input data
-    if (prevLayer == NULL) {
-
-    }
-    else {
-        buffer.loadData(prevLayer->outData());
-    }
+    std::vector<int> data = prevLayer->outData();
+    buffer.loadData(data);
 }
 
 // Check if ready to get request/send output
@@ -82,7 +81,7 @@ bool Layer::getRequest() const
 // Send output data from tile to lut
 std::vector<int> Layer::outData()
 {
-    std::vector<int> output;;
+    std::vector<int> output;
     output = lut.compute(tile.getOutput());
 
     return output;
@@ -141,6 +140,12 @@ void Layer::changeState(long long int clockTime)
  
     // change the tile states
     tile.changeState(clockTime);
+}
+
+// Debug code
+void Layer::checkBuffer() const
+{
+    buffer.visTest();
 }
 
 // Destructor

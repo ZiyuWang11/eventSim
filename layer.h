@@ -69,7 +69,8 @@ public:
      * By doing so to avoid holding data.
      */
  
-    void setInput(Layer* prevLayer = NULL);
+    void setInputFirst(std::vector<int> data);
+    void setInput(Layer* prevLayer);
 
     //////////////////////////
     //                      //
@@ -151,6 +152,10 @@ public:
      */
   
     void changeState(long long int clockTime);
+
+    /* Debug code */
+
+    void checkBuffer() const;
 };   
 
 #endif // LAYER_H_
