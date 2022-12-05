@@ -12,6 +12,7 @@
 
 const int dataPrecision = 8;
 const int busWidth = 64;
+const int memLatency = 20;
 
 int main() {
     // Buffer configuration

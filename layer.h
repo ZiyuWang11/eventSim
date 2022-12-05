@@ -13,6 +13,7 @@
 
 extern const int dataPrecision;
 extern const int busWidth;
+extern const int memLatency;
 
 class Layer
 {
@@ -36,13 +37,13 @@ public:
     //                         //
     ///////////////////////////// 
 
-    /* Check if the layer is ready to request data from the preveous layer
+    /* Check if the layer is ready to request data from the previous layer
      * Call sub-module method to check the status
      * For layer (conv, pool) with buffer, call Buffer method to check pointer position
      * For layer (fc) without buffer, call Array Tile method to check input register
      */
 
-    bool sendRequest(); // true for sending request
+    bool sendRequest() const; // true for sending request
 
     /* If get response from the previous layer, set input value and input ready time
      * This method will check the state of the previous layer, may need a pointer as input
@@ -51,7 +52,7 @@ public:
      * Previous layer will pass the input data and input setup time
      */
   
-    bool getResponse(); // true for get input data from previous layer
+    bool getResponse(Layer* prevLayer = NULL) const; // true for get input data from previous layer
 
     /* Set when the input is ready, at the ready time, sub-module will change status
      * The ready time will pass to sub-modules by calling their methods
@@ -59,7 +60,7 @@ public:
      * Time to pass the data is usually a constant
      */ 
 
-    void setInputTime();
+    void setInputTime(long long int clockTime, Layer* prevLayer = NULL);
 
     /* This methods will run simultaneously with setInputTime()
      * The data will set at the time when the layer get response
@@ -68,7 +69,7 @@ public:
      * By doing so to avoid holding data.
      */
  
-    void setInput();
+    void setInput(Layer* prevLayer = NULL);
 
     //////////////////////////
     //                      //
@@ -82,7 +83,7 @@ public:
      * The output data and time to pass the data will be sent simultaneously
      */
  
-    bool getRequest(); // true for data is ready to send to next layer
+    bool getRequest() const; // true for data is ready to send to next layer
 
     /* return the output data in the vector format
      * this method will be called by the next layer
@@ -97,7 +98,7 @@ public:
      * Change it later if needed
      */
  
-    int outTime();
+    int outTime() const;
 
     ///////////////////////////
     //                       //
@@ -109,14 +110,14 @@ public:
      * Return true when input data are ready in buffer and array computation is done
      */
 
-    bool buffer2tile(); // ture when input data is ready for Buffer -> Tile 
+    bool buffer2tile() const; // ture when input data is ready for Buffer -> Tile 
    
     /* Set input data and input ready time for tile
      * time to pass the data is a constant private member
      * The tile class will check clock to change it state
      */
 
-    void setBuffer2tile();
+    void setBuffer2Tile(long long int clockTime);
 
     //////////////////////////
     //                      //
@@ -137,6 +138,12 @@ public:
     /* Call array method to run computation
      */ 
     void execution();
+
+    ///////////////////
+    //               //
+    // State Control //
+    //               //
+    ///////////////////
 };   
 
 #endif // LAYER_H_
