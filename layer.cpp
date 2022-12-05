@@ -148,6 +148,11 @@ void Layer::checkBuffer() const
     buffer.visTest();
 }
 
+void Layer::checkTile() const
+{
+    tile.visTest();
+}
+
 // Destructor
 Layer::~Layer()
 {

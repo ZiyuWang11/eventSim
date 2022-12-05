@@ -45,15 +45,27 @@ int main() {
     Layer layer_test[layerNum] = {
         Layer(bufferSize, depth, sizeFM, sizeK, stride, numK, devicePrecision, arraySizeX, arraySizeY, numADC, weight, lutNum, af),
         Layer(bufferSize, depth2, sizeFM2, sizeK, stride, numK2, devicePrecision, arraySizeX, arraySizeY, numADC, weight2, lutNum, af)
-    };
+    }; 
+
+    layer_test[1].checkTile();
 
     // Initialize clock
     long long int clock = 1;
+
+    // Initialize data to be processed
+    const int outNum = 36;
+    int outCount  = 0; 
     
-    while (clock < 10000) {
+    while (outCount < outNum) {
         // Request Data from back to forward
-        if (layer_test[layerNum].getRequest()) layer_test[layerNum].setOutTime(clock);
-        for (int i = layerNum; i > 0; --i) {
+        if (layer_test[1].getRequest()) {
+            layer_test[1].setOutTime(clock);
+            std::vector<int> output = layer_test[1].outData();
+            ++outCount;
+            std::cout << outCount << std::endl;
+        }
+
+        for (int i = layerNum - 1; i > 0; --i) {
             // Check if data can be pass through two layers
             if (layer_test[i].sendRequest() && layer_test[i-1].getRequest()) {
                 std::cout << "Send data from Layer " << i << " to Layer " << i+1 << " at clock " << clock << std::endl;
@@ -68,7 +80,7 @@ int main() {
 
         // Check if load data from memory for the first layer
         if (layer_test[0].sendRequest() /*if there is data in the main memory*/) {
-            std::cout << "Send data from Memory to Layer 1 at clock " << clock << std::endl;
+            // std::cout << "Send data from Memory to Layer 1 at clock " << clock << std::endl;
             // Use random number as input at this moment
             int value = (int)clock;
             std::vector<int> data(depth, value);
@@ -80,13 +92,13 @@ int main() {
         for (int i = 0; i < layerNum; ++i) {
             // Buffer -> Tile
             if (layer_test[i].buffer2tile()) {
-                std::cout << "Layer " << i+1 << " sends data from buffer to tile at clock " << clock << std::endl;
+                // std::cout << "Layer " << i+1 << " sends data from buffer to tile at clock " << clock << std::endl;
                 layer_test[i].setBuffer2Tile(clock);
             }
            
             // VMM
             if (layer_test[i].rdy4comp()) {
-                std::cout << "Layer " << i+1 << " executes VMM at clock " << clock << std::endl;
+                //std::cout << "Layer " << i+1 << " executes VMM at clock " << clock << std::endl;
                 layer_test[i].setComp(clock);
             }
  
@@ -98,10 +110,17 @@ int main() {
         }
 
         // Debug Code
-        // if (clock % 1000 == 0) layer_test[1].checkBuffer();
-
+        //if (clock % 10000 == 0) {
+        //    std::cout << "Check at clock: " << clock << std::endl;
+        //    //layer_test[1].checkBuffer();
+        //    layer_test[1].checkTile();
+        //}
         ++clock;
     }
+
+    printf("==========================\n");
+    printf("Terminate at ClockL %lld\n", clock);
+    printf("==========================\n");
 
     return 0;
 }

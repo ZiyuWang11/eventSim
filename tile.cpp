@@ -71,9 +71,11 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
     latencyVMM_ =  10 // array
                  + 10 * ((arraySizeX_ - 1) / numADC_ + 1) // ADC conversion
                  + 2 // other digital logic
-                 + (int)(log2(arrayNumX_ - 1) + 1) * concHTree_ // tile concacetenation
-                 + (int)(log2(arrayNumY_ - 1) + 1) * addHTree_ // tile partial sum
+                 + ceil(log2(arrayNumX_)) * concHTree_ // tile concacetenation
+                 + ceil(log2(arrayNumY_)) * addHTree_ // tile partial sum
                  ;
+
+    std::cout << "Array numbers: " << arrayNumX_ << ", " << arrayNumY_ << std::endl;
 }
 
 void Tile::changeState(long long int clockTime)
@@ -82,7 +84,7 @@ void Tile::changeState(long long int clockTime)
     if (clockTime == inputEventTime_) {
         inputState_ = isRdy;
         inputEventTile_ = false; // loading data event terminated
-        std::cout << "Load data to input register at Clock=" << clockTime << std::endl;
+        //std::cout << "Load data to input register at Clock=" << clockTime << std::endl;
     }
 
     // Computation done
@@ -90,14 +92,14 @@ void Tile::changeState(long long int clockTime)
         inputState_ = notRdy;
         arrayState_ = compute_done;
         arrayEventTile_ = false; // array execution terminated
-        std::cout << "VMM computation done at Clock=" << clockTime << std::endl;
+        //std::cout << "VMM computation done at Clock=" << clockTime << std::endl;
     }
   
     // Output Sent
     if (clockTime == outputEventTime_) {
         arrayState_ = done;
         outputEventTile_ = false; // output data terminated
-        std::cout << "Send result to next layer at Clock=" << clockTime << std::endl;
+        //std::cout << "Send result to next layer at Clock=" << clockTime << std::endl;
     }
 }
     
@@ -198,6 +200,8 @@ void Tile::visTest() const
     //std::cout << weight_ << std::endl;
     //printf("- Output Register Data:\n");
     //std::cout << output_ << std::endl;
+
+    printf("Latency is %ld", latencyVMM_);
 
     // Print input register state
     switch (inputState_) {

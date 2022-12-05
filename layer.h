@@ -156,6 +156,8 @@ public:
     /* Debug code */
 
     void checkBuffer() const;
+
+    void checkTile() const;
 };   
 
 #endif // LAYER_H_

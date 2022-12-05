@@ -34,7 +34,7 @@ private:
     size_t arrayNumY_;
 
     // Latency configuration
-    int latencyVMM_;
+    size_t latencyVMM_;
     const static int concHTree_ = 1;
     const static int addHTree_ = 1;
 
