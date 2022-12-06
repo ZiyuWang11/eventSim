@@ -22,12 +22,14 @@ private:
     Tile tile;
     LUT lut;
     // other private representation to be developed
+    int layerNum_;
+    std::string layerType_;
 
 public:
     /* Constructor of the Layer class
      * call other constructors to initialize sub-modules
      */
-    Layer(size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af);
+    Layer(int layerNum, std::string layerType, size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af);
 
     ~Layer();
 

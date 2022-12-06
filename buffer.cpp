@@ -30,7 +30,7 @@ Buffer::Buffer()
 // Constructor
 Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride)
 {
-    std::cout << "Constructor" << std::endl;
+    // std::cout << "Constructor" << std::endl;
     headEventBuffer_ = false;
     headEventTime_ = -1;
     tailEventBuffer_ = false;
@@ -45,8 +45,10 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     dataNum_ = 0;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
-    std::cout << "Initialized buffer with size of " << bufferData_.size()
-              << " with channel depth of " << bufferData_[0].size() << std::endl;
+ 
+    printf("====================\n");
+    std::cout << "Buffer Size: " << bufferData_.size() << std::endl;
+    std::cout << "Channel Depth:" << bufferData_[0].size() << std::endl;
 }
 
 // check if ready to load new data
@@ -152,5 +154,5 @@ void Buffer::visTest() const
 // Destructor
 Buffer::~Buffer()
 {
-    std::cout << "Destructor" << std::endl;
+    // std::cout << "Destructor" << std::endl;
 }

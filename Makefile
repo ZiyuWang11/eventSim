@@ -21,7 +21,7 @@ all: $(BUILD_DIR)/$(TARGET)
 $(BUILD_DIR)/$(TARGET): $(OBJS)
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $^ -o $@
-
+ 
 $(BUILD_DIR)/%.o: %.cpp
 	mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -MMD -c $< -o $@

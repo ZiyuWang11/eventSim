@@ -33,7 +33,7 @@ Tile::Tile()
 // Constructor
 Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight)
 {
-    std::cout << "Constructor for Tile.\n";
+    // std::cout << "Constructor for Tile.\n";
 
     inputState_ = notRdy;
     arrayState_ = done;
@@ -75,7 +75,13 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
                  + ceil(log2(arrayNumY_)) * addHTree_ // tile partial sum
                  ;
 
-    std::cout << "Array numbers: " << arrayNumX_ << ", " << arrayNumY_ << std::endl;
+    
+    printf("--------------------\n");
+    printf("Device Bit: %d\n", devicePrecision_);
+    printf("ADC per Array: %ld\n", numADC_);
+    printf("Array size: [%ld, %ld]\n", arraySizeX_, arraySizeY_);
+    printf("Number of Arrays: [%ld, %ld]\n", arrayNumX_, arrayNumY_);
+    printf("Latency for a VMM: %ld\n", latencyVMM_);
 }
 
 void Tile::changeState(long long int clockTime)
@@ -222,6 +228,6 @@ void Tile::visTest() const
 // Destructor
 Tile::~Tile()
 {
-    std::cout << "Array Destructor\n";
+    // std::cout << "Array Destructor\n";
 }
 

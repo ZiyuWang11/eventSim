@@ -16,9 +16,18 @@ extern const int memLatency;
 
 // Constructor
 // Using sub-module Constructors
-Layer::Layer(size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af) : buffer(bufferSize, depth, sizeFM, sizeK, stride), tile(sizeK, numK, depth, devicePrecision, arraySizeX, arraySizeY, numADC, weight), lut(numK, lutNum, af)
+Layer::Layer(int layerNum, std::string layerType, size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af) : buffer(bufferSize, depth, sizeFM, sizeK, stride), tile(sizeK, numK, depth, devicePrecision, arraySizeX, arraySizeY, numADC, weight), lut(numK, lutNum, af)
 {
-    std::cout << "Layer Constructor\n";
+    layerNum_ = layerNum;
+    layerType_ = layerType;
+    // std::cout << "Layer Constructor\n";
+    printf("--------------------\n");
+    printf("Input Feature Map: %ld\n", sizeFM);
+    printf("Flatten Matrix Size: [%ld, %ld]\n", sizeK*sizeK*depth, numK);
+    std::cout << "Activation function: " << af << std::endl;
+    printf("====================\n");
+    std::cout << "Layer " << layerNum_ << " - " << layerType_ << std::endl;
+    printf("====================\n\n");
 }
 
 // Check if the layer is ready to request data from the previous layer
@@ -156,5 +165,5 @@ void Layer::checkTile() const
 // Destructor
 Layer::~Layer()
 {
-    std::cout << "Layer Destructor\n";
+    // std::cout << "Layer Destructor\n";
 }

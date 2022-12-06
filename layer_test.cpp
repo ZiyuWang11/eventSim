@@ -5,16 +5,24 @@
 #include <string>
 #include <cmath>
 #include <Eigen/Dense>
-#include "buffer.h"
-#include "tile.h"
-#include "lut.h"
+//#include "buffer.h"
+//#include "tile.h"
+//#include "lut.h"
 #include "layer.h"
+
+//#include <opencv2/core.hpp>
+//#include <opencv2/imgcodecs.hpp>
+//#include <opencv2/highgui.hpp>
 
 const int dataPrecision = 8;
 const int busWidth = 64;
 const int memLatency = 20;
 
 int main() {
+    // Test opencv
+	//std::string image_path = cv::samples::findFile("test.tif");
+	//cv::Mat img = cv::imread(image_path, cv::IMREAD_COLOR);
+
     // Buffer configuration
     size_t bufferSize = 30;
     size_t depth = 3;
@@ -40,14 +48,13 @@ int main() {
     size_t numK2 = 32;
     Eigen::MatrixXf weight2 = Eigen::MatrixXf::Ones(16*3*3, numK2);
 
+    printf("==Architecuture Configuration==\n");
     // Layer layer_test(bufferSize, depth, sizeFM, sizeK, stride, numK, devicePrecision, arraySizeX, arraySizeY, numADC, weight, lutNum, af);
     const int layerNum = 2;
     Layer layer_test[layerNum] = {
-        Layer(bufferSize, depth, sizeFM, sizeK, stride, numK, devicePrecision, arraySizeX, arraySizeY, numADC, weight, lutNum, af),
-        Layer(bufferSize, depth2, sizeFM2, sizeK, stride, numK2, devicePrecision, arraySizeX, arraySizeY, numADC, weight2, lutNum, af)
+        Layer(1, "Conv", bufferSize, depth, sizeFM, sizeK, stride, numK, devicePrecision, arraySizeX, arraySizeY, numADC, weight, lutNum, af),
+        Layer(2, "Conv", bufferSize, depth2, sizeFM2, sizeK, stride, numK2, devicePrecision, arraySizeX, arraySizeY, numADC, weight2, lutNum, af)
     }; 
-
-    layer_test[1].checkTile();
 
     // Initialize clock
     long long int clock = 1;
@@ -62,13 +69,13 @@ int main() {
             layer_test[1].setOutTime(clock);
             std::vector<int> output = layer_test[1].outData();
             ++outCount;
-            std::cout << outCount << std::endl;
+            // std::cout << outCount << std::endl;
         }
 
         for (int i = layerNum - 1; i > 0; --i) {
             // Check if data can be pass through two layers
             if (layer_test[i].sendRequest() && layer_test[i-1].getRequest()) {
-                std::cout << "Send data from Layer " << i << " to Layer " << i+1 << " at clock " << clock << std::endl;
+                // std::cout << "Send data from Layer " << i << " to Layer " << i+1 << " at clock " << clock << std::endl;
                 // Set Input and Input Time
                 // Time and Data are get from previous layer
                 Layer* layerPtr = &layer_test[i-1];
@@ -119,7 +126,7 @@ int main() {
     }
 
     printf("==========================\n");
-    printf("Terminate at ClockL %lld\n", clock);
+    printf("Terminate at Clock %lld\n", clock);
     printf("==========================\n");
 
     return 0;

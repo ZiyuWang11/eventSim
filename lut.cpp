@@ -18,7 +18,7 @@ LUT::LUT() : lutNum_(256), lutSize_(1)
 // Constructor
 LUT::LUT(size_t outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(lutNum), activationFunction_(af), lutSize_((int) pow(2, dataPrecision))
 {
-    std::cout << "Constructor" << std::endl;
+    // std::cout << "Constructor" << std::endl;
    
     // LUT size depends on the data precision
     // lutSize_ = (int) pow(2, dataPrecision);
@@ -57,7 +57,10 @@ LUT::LUT(size_t outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(l
     // for (size_t i = 0; i < lutSize_; ++i) {
     //     std::cout << "Entry " << (int)i << ": " << (int)lutTable_[i] << std::endl;
     // }
-
+    
+    printf("--------------------\n");
+    printf("LUT Size: %d\n", lutSize_);
+    printf("Number of LUT: %d\n", lutNum_);
 }
 
 // Get Latency for coversion and forwording all output data from the tile
@@ -110,6 +113,6 @@ void LUT::showLUT() const
 // Destructor
 LUT::~LUT()
 {
-    std::cout << "Destructor" << std::endl;
+    // std::cout << "Destructor" << std::endl;
     delete[] lutTable_;
 }
