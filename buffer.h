@@ -23,6 +23,8 @@ private:
     // data
     size_t dataNum_; // number of valid data in the bufer
     std::vector<std::vector<int>> bufferData_;
+    // how many steps per row
+    size_t step_;
     // evnet timing
     bool headEventBuffer_; // event for loading data
     long long int headEventTime_; // event for loading data

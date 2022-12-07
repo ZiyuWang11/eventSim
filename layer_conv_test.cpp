@@ -15,7 +15,7 @@ const int memLatency = 20;
 
 int main() {
     // Buffer configuration
-    size_t bufferSize = 100;
+    size_t bufferSize = 1000;
     size_t depth = 3;
 
     // Tile configuration
@@ -26,13 +26,13 @@ int main() {
     size_t numADC = 4;
    
     // LUT configuration
-    int lutNum = 4;
+    int lutNum = 1;
     std::string af = "ReLU";
 
     // Layer 1 configuration
-    size_t sizeFM = 31;
+    size_t sizeFM = 18;
     size_t sizeK = 5;
-    size_t stride = 2;
+    size_t stride = 1;
     size_t numK = 6;
     Eigen::MatrixXf weight = Eigen::MatrixXf::Ones(sizeK*sizeK*depth, numK);
     // Layer 2 configuration
@@ -49,7 +49,7 @@ int main() {
 
     // Layer 3 FC configuration
     size_t outNum3 = 80;
-    Eigen::MatrixXf weight3 = Eigen::MatrixXf::Ones(160, outNum3);
+    Eigen::MatrixXf weight3 = Eigen::MatrixXf::Ones(1600, outNum3);
 
     // Layer 4 FC configuration
     size_t outNum4 = 10;
@@ -82,6 +82,7 @@ int main() {
     // const int outNumber = 10 * 10;
     int inPixel = 0;
     int outCount  = 0; 
+    int exVMM[2] = {0, 0};
     
     while (outCount < 1) {
         // Request Data from back to forward
@@ -106,7 +107,7 @@ int main() {
         }
 
         // Check if load data from memory for the first layer
-        if (layer_test[0]->sendRequest() /*if there is data in the main memory*/ && inPixel < 31*31) {
+        if (layer_test[0]->sendRequest() /*if there is data in the main memory*/ && inPixel < 18*18) {
             // std::cout << "Send data from Memory to Layer 1 at clock " << clock << std::endl;
             // Use random number as input at this moment
             int value = (int)clock;
@@ -128,6 +129,10 @@ int main() {
             if (layer_test[i]->rdy4comp()) {
                 std::cout << "Layer " << i+1 << " executes VMM at clock " << clock << std::endl;
                 layer_test[i]->setComp(clock);
+                if (i < 2) exVMM[i] += 1;
+                //if (i == 0) printf("First Layer1 %d\n", inPixel);
+                
+                //if (i == 1) printf("First Layer2 %d\n", exVMM[0]);
             }
  
         }
@@ -145,7 +150,9 @@ int main() {
         //}
         ++clock;
     }
-
+    printf("Input Pixels: %d\n", inPixel);
+    printf("Layer 1 execute %d times,\n",exVMM[0]);
+    printf("Layer 2 execute %d times,\n",exVMM[1]);
     printf("==========================\n");
     printf("Terminate at Clock %lld\n", clock);
     printf("==========================\n");

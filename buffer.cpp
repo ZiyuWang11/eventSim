@@ -40,6 +40,7 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     sizeFM_ = sizeFM;
     sizeK_ = sizeK;
     stride_ = stride;
+    step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
     headPtr_ = 0;
     tailPtr_ = 0;
     dataNum_ = 0;
@@ -85,8 +86,16 @@ void Buffer::movePtr(long long int clockTime)
 
     // send one conv window
     if (clockTime == tailEventTime_) {
-        tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-        dataNum_ -= stride_;
+        if (step_ < ((sizeFM_ - sizeK_) / stride_ + 1)) {
+            tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+            dataNum_ -= stride_;
+            ++step_;
+        }
+        else {
+            tailPtr_ = (tailPtr_ + sizeK_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+            dataNum_ -= sizeK_ + (stride_ - 1) * sizeFM_;
+            step_ = 0;
+        }
         tailEventBuffer_ = false; // event terminate
         // std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
     }
@@ -96,7 +105,7 @@ void Buffer::movePtr(long long int clockTime)
 // 1. heatPtr is above tailPtr a conv window
 bool Buffer::sendRdy() const 
 {
-    return (dataNum_ >= 2 * sizeFM_ + sizeK_) && !tailEventBuffer_;
+    return (dataNum_ >= (sizeK_ - 1) * sizeFM_ + sizeK_) && !tailEventBuffer_;
 }
 
 // return the latency for sending data from buffer to tile

@@ -29,7 +29,7 @@ public:
 
     virtual void setInput(LayerABC* prevLayer = NULL);
 
-    virtual bool buffer2tile() const { return true;};
+    virtual bool buffer2tile() const { return false;}
 
     virtual void setBuffer2Tile(long long int clockTime) {};
 
