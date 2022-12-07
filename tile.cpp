@@ -128,19 +128,20 @@ void Tile::setInTime(long long int clockTime, int latency)
 }
 
 // If compute_done, input buffer can load data
-void Tile::loadData(std::vector<std::vector<int>> data)
+void Tile::loadData(std::vector<int> data)
 {
     // Load input data
-    std::vector<std::vector<int>> recvData = data; // maybe unnecessary
+    //std::vector<std::vector<int>> recvData = data; // maybe unnecessary
 
     // reshape received data to 1D vector fashion
-    std::vector<float> flattenData;
-    for (auto const& v: recvData) {
-        flattenData.insert(flattenData.end(), v.begin(), v.end());
-    }
+    //std::vector<float> flattenData;
+    //for (auto const& v: recvData) {
+    //    flattenData.insert(flattenData.end(), v.begin(), v.end());
+    //}
 
+    std::vector<float> data_f(data.begin(), data.end());
     // convertdata to Eigen Vector
-    input_ = Eigen::Map<Eigen::VectorXf>(flattenData.data(), flattenData.size());
+    input_ = Eigen::Map<Eigen::VectorXf>(data_f.data(), data_f.size());
 
     // set a loading event for the input register
     inputEventTile_ = true;

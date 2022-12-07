@@ -9,8 +9,8 @@ BUILD_DIR = ./build
 //SRCS = buffer.cpp buffer_test.cpp
 //SRCS = tile.cpp tile_test.cpp
 //SRCS = lut.cpp lut_test.cpp
-SRCS = buffer.cpp tile.cpp lut.cpp layer.cpp layer_test.cpp
-//SRCS = buffer.cpp tile.cpp lut.cpp layerabc.cpp layer_vmm.cpp layer_conv.cpp layer_conv_test.cpp
+//SRCS = buffer.cpp tile.cpp lut.cpp layer.cpp layer_test.cpp
+SRCS = buffer.cpp tile.cpp lut.cpp layerabc.cpp layer_vmm.cpp layer_conv.cpp layer_fc.cpp layer_conv_test.cpp
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:.o=.d)
 

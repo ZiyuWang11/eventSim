@@ -69,8 +69,8 @@ bool LayerConv::buffer2tile() const
 void LayerConv::setBuffer2Tile(long long int clockTime)
 {
     // Buffer send output data to tile input register
-    std::vector<std::vector<int>> data = buffer.sendData();
-    tile.loadData(data);
+    // std::vector<std::vector<int>> data = buffer.sendData();
+    tile.loadData(buffer.sendData());
     // tile set the data loading latency
     tile.setInTime(clockTime, buffer.sendTime());
     // buffer set data sending latency for move pointer

@@ -114,7 +114,7 @@ void Buffer::setOutTime(long long int clockTime)
 
 // send data to array - constrained by bus width
 // each data is 8 or 4 bit
-std::vector<std::vector<int>> Buffer::sendData()
+std::vector<int> Buffer::sendData()
 {
     std::vector<std::vector<int>> dataConvWindow;
 
@@ -125,10 +125,16 @@ std::vector<std::vector<int>> Buffer::sendData()
         }
     }
 
+    // Flatten data in the Conv Window to 1D
+    std::vector<int> flattenData;
+    for (auto const& v: dataConvWindow) {
+        flattenData.insert(flattenData.end(), v.begin(), v.end());
+    }
+
     // Schedule sending event
     tailEventBuffer_ = true;
 
-    return dataConvWindow;
+    return flattenData;
 }
 
 // Debug code for test only

@@ -28,7 +28,7 @@ public:
      */
 
     // Input Methods    
-    virtual void setInputFirst(std::vector<int> data) =0; // Pure Virtual Function
+    // virtual void setInputFirst(std::vector<int> data) =0; // Pure Virtual Function
 
     // Output response methods
     virtual bool getRequest() const;
@@ -40,9 +40,9 @@ public:
     virtual void setOutTime(long long int clockTime);
 
     // Tile Computation Methods
-    bool rdy4comp() const;
+    virtual bool rdy4comp() const;
 
-    void setComp(long long int clockTime);
+    virtual void setComp(long long int clockTime);
 };
 
 #endif // LAYER_VMM_H_

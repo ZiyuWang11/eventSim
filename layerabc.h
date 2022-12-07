@@ -38,6 +38,8 @@ public:
 
     virtual void setInput(LayerABC* prevLayer = NULL) = 0;
 
+    virtual void setInputFirst(std::vector<int> data) =0;
+
     // Output response methods
     virtual bool getRequest() const = 0;
 
@@ -46,6 +48,16 @@ public:
     virtual int outTime() const = 0;
 
     virtual void setOutTime(long long int clockTime) =0;
+    
+    // Buffer -> Tile Methods
+    virtual bool buffer2tile() const =0;
+
+    virtual void setBuffer2Tile(long long int clockTime) =0;
+
+    // Tile Computation Methods
+    virtual bool rdy4comp() const =0;
+
+    virtual void setComp(long long int clockTime) =0;
 
     // State change methods
     virtual void changeState(long long int clockTime) =0;

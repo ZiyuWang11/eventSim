@@ -106,7 +106,7 @@ public:
      * This method will be called by the owner layer setBuffer2tile() method
      * The vector will later to set the input register of tile
      */
-    std::vector<std::vector<int>> sendData();
+    std::vector<int> sendData();
 
     // Debug code
     void visTest() const;

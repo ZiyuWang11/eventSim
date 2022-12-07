@@ -129,7 +129,7 @@ public:
      * The state change is determined by the event time, find more detail in State Change methods
      * This method will be called by the owner layer setBuffer2Tile() method
      */ 
-    void loadData(std::vector<std::vector<int>> data);
+    void loadData(std::vector<int> data);
 
     ///////////////////////// 
     //                     //

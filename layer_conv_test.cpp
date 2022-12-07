@@ -46,6 +46,9 @@ int main() {
     size_t outNum = 6;
     size_t outNum2 = 16;
 
+    // Layer 3 FC configuration
+    Eigen::MatrixXf weight3 = Eigen::MatrixXf::Ones(2, numK2);
+
     printf("==Architecuture Configuration==\n");
     // Layer layer_test(bufferSize, depth, sizeFM, sizeK, stride, numK, devicePrecision, arraySizeX, arraySizeY, numADC, weight, lutNum, af);
     const int layerNum = 2;
@@ -54,9 +57,11 @@ int main() {
     //    Layer(2, "Conv", bufferSize-66, depth2, sizeFM2, sizeK2, stride2, numK2, devicePrecision, arraySizeX, arraySizeY, numADC, weight2, lutNum, af)
     //};
 
-    LayerConv* layer_test[layerNum]; 
+    LayerABC* layer_test[layerNum]; 
     layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight, outNum, lutNum, af, bufferSize, depth, sizeFM, sizeK, stride);
     layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, outNum2, lutNum, af, bufferSize, depth2, sizeFM2, sizeK2, stride2);
+    //layer_test[2] = new LayerFC(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, outNum3, lutNum, af);
+
 
     // Initialize clock
     long long int clock = 1;

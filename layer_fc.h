@@ -1,29 +1,24 @@
-// layer_conv.h - Convolution Layer, inherit from LayerVMM
+// layer_fc.h - Fully Connected Layer, inherit from LayerVMM
 
-#ifndef LAYER_CONV_H_
-#define LAYER_CONV_H_
+#ifndef LAYER_FC_H_
+#define LAYER_FC_H_
 
 #include <string>
 #include <vector>
-#include "buffer.h"
 #include "layer_vmm.h"
 
 extern const int dataPrecision;
 extern const int busWidth;
 extern const int memLatency;
 
-class LayerConv : public LayerVMM
+class LayerFC : public LayerVMM
 {
-private:
-    Buffer buffer;
-
 public:
-    LayerConv(int layerNum, std::string layerType, // Layer
+    LayerFC(int layerNum, std::string layerType, // Layer
               int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, // Tile
-              size_t numOut, int lutNum, std::string af, // LUT
-              size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride); // Buffer
+              size_t numOut, int lutNum, std::string af); // LUT
 
-    virtual ~LayerConv() {};
+    virtual ~LayerFC() {};
 
     // Input Methods
     virtual bool sendRequest() const;
@@ -34,13 +29,8 @@ public:
 
     virtual void setInput(LayerABC* prevLayer = NULL);
 
-    // Buffer -> Tile Methods
-    virtual bool buffer2tile() const;
-
-    virtual void setBuffer2Tile(long long int clockTime);
-
     // State Change Methods
     virtual void changeState(long long int clockTime);
 };
 
-#endif // LAYER_CONV_H_
+#endif // LAYER_FC_H_
