@@ -93,7 +93,11 @@ void Tile::changeState(long long int clockTime)
 {
     // Input loading done
     if (clockTime == inputEventTime_) {
-        inputState_ = isRdy;
+        // if get sufficient input data, change inputState
+        if ((long int)inputHold_.size() == weight_.rows()) {
+            inputHold_.clear();
+            inputState_ = isRdy;
+        }
         inputEventTile_ = false; // loading data event terminated
         //std::cout << "Load data to input register at Clock=" << clockTime << std::endl;
     }
@@ -139,9 +143,17 @@ void Tile::loadData(std::vector<int> data)
     //    flattenData.insert(flattenData.end(), v.begin(), v.end());
     //}
 
-    std::vector<float> data_f(data.begin(), data.end());
-    // convertdata to Eigen Vector
-    input_ = Eigen::Map<Eigen::VectorXf>(data_f.data(), data_f.size());
+    // Push back data to temperal data holder
+    //
+    inputHold_.insert(inputHold_.end(), data.begin(), data.end());
+ 
+    // Write data into input register if data length is sufficient
+    if ((long int)inputHold_.size() == weight_.rows()) {
+
+        std::vector<float> data_f(inputHold_.begin(), inputHold_.end());
+        // convertdata to Eigen Vector
+        input_ = Eigen::Map<Eigen::VectorXf>(data_f.data(), data_f.size());
+    }
 
     // set a loading event for the input register
     inputEventTile_ = true;

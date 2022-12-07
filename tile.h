@@ -45,7 +45,9 @@ private:
     long long int arrayEventTime_; // schedule event for array
     bool outputEventTile_; // event for ouput Tile -> LUT
     long long int outputEventTime_; // schedule event for output
-    
+   
+    // std::vector to hold input for multi-input loading, eg conv->FC
+    std::vector<int> inputHold_;
     // Weight
     Eigen::MatrixXf weight_;
     // Input register
