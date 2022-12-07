@@ -15,23 +15,26 @@ Tile::Tile()
     std::cout << "Default Constructor for Tile.\n";
     inputState_ = notRdy;
     arrayState_ = done;
-    sizeK_ = 3;
-    numK_ = 3;
-    channelDepth_ = 3;
+    // sizeK_ = 3;
+    // numK_ = 3;
+    // channelDepth_ = 3;
     devicePrecision_ = 4;
     arraySizeX_ = 128;
     arraySizeY_ = 128;
     numADC_ = 4;
-    weight_.resize(sizeK_ * sizeK_ * channelDepth_, numK_);
+    // weight_.resize(sizeK_ * sizeK_ * channelDepth_, numK_);
+    weight_.resize(1, 1);
     weight_.setZero();
-    input_.resize(sizeK_ * sizeK_ * channelDepth_);
+    // input_.resize(sizeK_ * sizeK_ * channelDepth_);
+    input_.resize(1);
     input_.setZero();
-    output_.resize(numK_);
+    // output_.resize(numK_);
+    output_.resize(1);
     output_.setZero();
 }
 
 // Constructor
-Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight)
+Tile::Tile(/*size_t sizeK, size_t numK, size_t channelDepth, */int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight)
 {
     // std::cout << "Constructor for Tile.\n";
 
@@ -39,9 +42,9 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
     arrayState_ = done;
 
     // NN model configuration
-    sizeK_ = sizeK;
-    numK_ = numK;
-    channelDepth_ = channelDepth;
+    // sizeK_ = sizeK;
+    // numK_ = numK;
+    // channelDepth_ = channelDepth;
 
     devicePrecision_ = devicePrecision;
     arraySizeX_ = arraySizeX;
@@ -61,9 +64,11 @@ Tile::Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, 
     arrayNumX_ = (2 * weight_.cols() * dataPrecision - 1) / devicePrecision_ / arraySizeX_+ 1;
     arrayNumY_ = (weight_.rows() - 1) / arraySizeY_ + 1;
 
-    input_.resize(sizeK_ * sizeK_ * channelDepth_);
+    // input_.resize(sizeK_ * sizeK_ * channelDepth_);
+    input_.resize(weight_.rows());
     input_.setZero();
-    output_.resize(numK_);
+    // output_.resize(numK_);
+    output_.resize(weight_.cols());
     output_.setZero();
 
     // set latency for a layer VMM

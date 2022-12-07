@@ -16,7 +16,10 @@ extern const int memLatency;
 
 // Constructor
 // Using sub-module Constructors
-Layer::Layer(int layerNum, std::string layerType, size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af) : buffer(bufferSize, depth, sizeFM, sizeK, stride), tile(sizeK, numK, depth, devicePrecision, arraySizeX, arraySizeY, numADC, weight), lut(numK, lutNum, af)
+Layer::Layer(int layerNum, std::string layerType, size_t bufferSize, size_t depth, size_t sizeFM, size_t sizeK, size_t stride, size_t numK, int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, int lutNum, std::string af) : 
+       buffer(bufferSize, depth, sizeFM, sizeK, stride), 
+       tile(/*sizeK, numK, depth, */devicePrecision, arraySizeX, arraySizeY, numADC, weight), 
+       lut(numK, lutNum, af)
 {
     layerNum_ = layerNum;
     layerType_ = layerType;

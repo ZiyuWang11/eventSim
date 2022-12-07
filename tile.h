@@ -20,9 +20,9 @@ private:
     int arrayState_;
     
     // NN model configuration
-    size_t sizeK_;
-    size_t numK_;
-    size_t channelDepth_;
+    // size_t sizeK_;
+    // size_t numK_;
+    // size_t channelDepth_;
 
     // Architecture configuration
     int devicePrecision_;
@@ -67,7 +67,7 @@ public:
     Tile();
     
     // Constructor
-    Tile(size_t sizeK, size_t numK, size_t channelDepth, int devicePrecision, size_t arraySizeX, size_t arraySizeY,size_t numADC, const Eigen::MatrixXf& weight);
+    Tile(/*size_t sizeK, size_t numK, size_t channelDepth, */int devicePrecision, size_t arraySizeX, size_t arraySizeY,size_t numADC, const Eigen::MatrixXf& weight);
 
     // Destructor
     ~Tile();
