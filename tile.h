@@ -186,6 +186,8 @@ public:
 
     // Debug code
     void visTest() const;
+
+    void tileConfig() const;
     
 };
 #endif //TILE_H_

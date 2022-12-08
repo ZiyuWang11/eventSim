@@ -20,7 +20,7 @@ LayerVMM::LayerVMM(int layerNum, std::string layerType,
                      tile(devicePrecision, arraySizeX, arraySizeY, numADC, weight), 
                      lut(numOut, lutNum, af)
 {
-    std::cout << "Layer Constructor\n";
+    // std::cout << "Layer Constructor\n";
     //printf("--------------------\n");
     //printf("Input Feature Map: %ld\n", sizeFM);
     //printf("Flatten Matrix Size: [%ld, %ld]\n", sizeK*sizeK*depth, numK);

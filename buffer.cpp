@@ -47,9 +47,6 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
  
-    printf("====================\n");
-    std::cout << "Buffer Size: " << bufferData_.size() << std::endl;
-    std::cout << "Channel Depth:" << bufferData_[0].size() << std::endl;
 }
 
 // check if ready to load new data
@@ -164,6 +161,13 @@ void Buffer::visTest() const
             std::cout << " " << std::endl;
         }
     }
+}
+
+void Buffer::bufferConfig() const 
+{
+    printf("====================\n");
+    std::cout << "Buffer Size: " << bufferData_.size() << std::endl;
+    std::cout << "Channel Depth:" << bufferData_[0].size() << std::endl;
 }
 
 // Destructor

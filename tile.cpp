@@ -81,12 +81,6 @@ Tile::Tile(/*size_t sizeK, size_t numK, size_t channelDepth, */int devicePrecisi
                  ;
 
     
-    printf("--------------------\n");
-    printf("Device Bit: %d\n", devicePrecision_);
-    printf("ADC per Array: %ld\n", numADC_);
-    printf("Array size: [%ld, %ld]\n", arraySizeX_, arraySizeY_);
-    printf("Number of Arrays: [%ld, %ld]\n", arrayNumX_, arrayNumY_);
-    printf("Latency for a VMM: %ld\n", latencyVMM_);
 }
 
 void Tile::changeState(long long int clockTime)
@@ -242,7 +236,17 @@ void Tile::visTest() const
         default: printf("NONE\n"); break;
     }
 }
- 
+
+void Tile::tileConfig() const
+{
+    printf("--------------------\n");
+    printf("Device Bit: %d\n", devicePrecision_);
+    printf("ADC per Array: %ld\n", numADC_);
+    printf("Array size: [%ld, %ld]\n", arraySizeX_, arraySizeY_);
+    printf("Number of Arrays: [%ld, %ld]\n", arrayNumX_, arrayNumY_);
+    printf("Latency for a VMM: %ld\n", latencyVMM_);
+} 
+
 // Destructor
 Tile::~Tile()
 {

@@ -17,7 +17,7 @@
 
 class LayerABC
 {
-private:
+protected:
     int layerNum_;
     std::string layerType_;
 
@@ -61,6 +61,9 @@ public:
 
     // State change methods
     virtual void changeState(long long int clockTime) =0;
+
+    // Hardware Configuration
+    virtual void layerConfig() const =0;
 };
 
 #endif // LAYERABC_H_

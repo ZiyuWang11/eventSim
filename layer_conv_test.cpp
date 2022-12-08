@@ -74,7 +74,9 @@ int main() {
     layer_test[3] = new LayerFC(4, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, outNum4, lutNum, af);
     // layer_test[4] = new LayerFC(5, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, outNum3, lutNum, af);
 
-
+    for (int i = 0; i < layerNum; ++i) {
+        layer_test[i]->layerConfig();
+    }
     // Initialize clock
     long long int clock = 1;
 

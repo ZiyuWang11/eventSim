@@ -112,5 +112,7 @@ public:
 
     // Debug code
     void visTest() const;
+
+    void bufferConfig() const;
 };
 #endif //BUFFER_H_

@@ -19,7 +19,7 @@ LayerConv::LayerConv(int layerNum, std::string layerType, // Layer
                                 numOut, lutNum, af),
                        buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride)
 {
-    std::cout << "Conv Layer Constructor!\n";
+//    std::cout << "Conv Layer Constructor!\n";
 }
 
 // Input Request Methods
@@ -86,4 +86,15 @@ void LayerConv::changeState(long long int clockTime)
  
     // change the tile states
     tile.changeState(clockTime);
+}
+
+// Hardware Configuration
+void LayerConv::layerConfig() const
+{
+    printf("===Layer %d - Conv===\n", layerNum_);
+    buffer.bufferConfig();
+    tile.tileConfig();
+    lut.lutConfig();
+    printf("====================\n");
+    printf("\n");
 }

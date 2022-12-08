@@ -35,6 +35,9 @@ public:
 
     // State Change Methods
     virtual void changeState(long long int clockTime);
+
+    // Hardware Configuration
+    virtual void layerConfig() const;
 };
 
 #endif // LAYER_FC_H_

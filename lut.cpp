@@ -57,10 +57,6 @@ LUT::LUT(size_t outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(l
     // for (size_t i = 0; i < lutSize_; ++i) {
     //     std::cout << "Entry " << (int)i << ": " << (int)lutTable_[i] << std::endl;
     // }
-    
-    printf("--------------------\n");
-    printf("LUT Size: %d\n", lutSize_);
-    printf("Number of LUT: %d\n", lutNum_);
 }
 
 // Get Latency for coversion and forwording all output data from the tile
@@ -110,6 +106,12 @@ void LUT::showLUT() const
     }
 }
 
+void LUT::lutConfig() const
+{    
+    printf("--------------------\n");
+    printf("LUT Size: %d\n", lutSize_);
+    printf("Number of LUT: %d\n", lutNum_);
+}
 // Destructor
 LUT::~LUT()
 {

@@ -65,6 +65,8 @@ public:
     ///////////////////
 
     void showLUT() const;
+
+    void lutConfig() const;
 };
 
 #endif // LUT_H_

@@ -16,7 +16,6 @@ LayerFC::LayerFC(int layerNum, std::string layerType, // Layer
                                 devicePrecision, arraySizeX, arraySizeY, numADC, weight, 
                                 numOut, lutNum, af)
 {
-    std::cout << "FC Layer Constructor!\n";
 }
 
 // Input Request Methods
@@ -59,4 +58,14 @@ void LayerFC::changeState(long long int clockTime)
 {
     // change the tile states
     tile.changeState(clockTime);
+}
+
+// Hardware Configuration
+void LayerFC::layerConfig() const
+{
+    printf("====Layer %d - FC====\n", layerNum_);
+    tile.tileConfig();
+    lut.lutConfig();
+    printf("====================\n");
+    printf("\n");
 }
