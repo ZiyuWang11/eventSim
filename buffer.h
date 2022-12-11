@@ -18,6 +18,7 @@ private:
     size_t tailPtr_; // tail pointer of ring FIFO
     // model configuration - which data to send
     size_t sizeFM_; // input feature map size, assume to be square
+    size_t sizeOFM_;
     size_t sizeK_; // conv kernel size (2D)
     size_t stride_; // stride of conv kernel
     // data
@@ -25,6 +26,7 @@ private:
     std::vector<std::vector<int>> bufferData_;
     // how many steps per row
     size_t step_;
+    size_t stepCol_;
     // evnet timing
     bool headEventBuffer_; // event for loading data
     long long int headEventTime_; // event for loading data

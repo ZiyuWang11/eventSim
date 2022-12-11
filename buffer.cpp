@@ -40,7 +40,9 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     sizeFM_ = sizeFM;
     sizeK_ = sizeK;
     stride_ = stride;
+    sizeOFM_ = (sizeFM_ - sizeK_) / stride_ + 1;
     step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
+    stepCol_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
     dataNum_ = 0;
@@ -83,18 +85,26 @@ void Buffer::movePtr(long long int clockTime)
 
     // send one conv window
     if (clockTime == tailEventTime_) {
-        if (step_ < ((sizeFM_ - sizeK_) / stride_ + 1)) {
-            tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-            dataNum_ -= stride_;
-            ++step_;
+        if (stepCol_ < sizeOFM_) {
+            if (step_ < sizeOFM_) {
+                tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+                dataNum_ -= stride_;
+                ++step_;
+            }
+            else {
+                tailPtr_ = (tailPtr_ + sizeK_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+                dataNum_ -= sizeK_ + (stride_ - 1) * sizeFM_;
+                step_ = 0;
+                ++stepCol_;
+            }
         }
         else {
-            tailPtr_ = (tailPtr_ + sizeK_ + (stride_ - 1) * sizeFM_) % bufferSize_;
-            dataNum_ -= sizeK_ + (stride_ - 1) * sizeFM_;
+            tailPtr_ = (tailPtr_ + sizeK_ + (sizeK_ - 1) * sizeFM_) % bufferSize_;
+            dataNum_ -= sizeK_ + (sizeK_ - 1) * sizeFM_;
             step_ = 0;
+            stepCol_ = 0;
         }
         tailEventBuffer_ = false; // event terminate
-        // std::cout << "Send data to tile at Clock = " << clockTime << std::endl;
     }
 }
 

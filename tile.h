@@ -35,8 +35,8 @@ private:
 
     // Latency configuration
     size_t latencyVMM_;
-    const static int concHTree_ = 1;
-    const static int addHTree_ = 1;
+    size_t concHTree_ = 1;
+    size_t addHTree_;
 
     // event timing
     bool inputEventTile_; // event for getting input from buffer

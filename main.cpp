@@ -9,7 +9,7 @@
 #include "layer_fc.h"
 
 const int dataPrecision = 8;
-const int busWidth = 64;
+const int busWidth = 128;
 const int memLatency = 20;
 
 // Test LeNet and AlexNet, no pooling layer at this moment
@@ -20,23 +20,23 @@ int main() {
     // If debug is true, will print debug code
     bool debug = true;
 
-    //testLeNet(debug);
-    testAlexNet();
+    testLeNet(debug);
+    //testAlexNet();
 
     return 0;
 }
 
 // LeNet Test - 2 Conv + 3 FC
 void testLeNet(bool debug) { 
-    // Buffer Configuration 
+    // Buffer Configuration for inifinite buffer
     size_t bufferSize = 1000;
     // Tile Configuration
     int devicePrecision = 4;
     size_t arraySizeX = 128;
     size_t arraySizeY = 128;
-    size_t numADC = 16;
+    size_t numADC = 64;
     // LUT configuration
-    int lutNum = 1;
+    int lutNum = 2;
     std::string af = "ReLU";
     
     // Layer 1 Configuration
@@ -71,8 +71,8 @@ void testLeNet(bool debug) {
     // Initialize Layers
     const int layerNum = 5;
     LayerABC* layer_test[layerNum]; 
-    layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, bufferSize, depth1, sizeFM1, sizeK1, stride1);
-    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, bufferSize, depth2, sizeFM2, sizeK2, stride2);
+    layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, sizeFM1*(sizeK1-1)+1+sizeK1/*bufferSize*/, depth1, sizeFM1, sizeK1, stride1);
+    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, sizeFM2*(sizeK2-1)+1+sizeK2/*bufferSize*/, depth2, sizeFM2, sizeK2, stride2);
     layer_test[2] = new LayerFC(3, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, outNum3, lutNum, af);
     layer_test[3] = new LayerFC(4, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, outNum4, lutNum, af);
     layer_test[4] = new LayerFC(5, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight5, outNum5, lutNum, af);
@@ -88,7 +88,7 @@ void testLeNet(bool debug) {
     // Initialize data to be processed
     size_t inPixel = 0;
     size_t outCount = 0; 
-    size_t inputNum = 100;
+    size_t inputNum = 5;
     
     while (outCount < inputNum) {
         // Request Data from back to forward
@@ -160,9 +160,9 @@ void testAlexNet(bool debug) {
     int devicePrecision = 4;
     size_t arraySizeX = 128;
     size_t arraySizeY = 128;
-    size_t numADC = 16;
+    size_t numADC = 64;
     // LUT configuration
-    int lutNum = 1;
+    int lutNum = 2;
     std::string af = "ReLU";
     
     // Layer 1 Configuration
@@ -221,11 +221,11 @@ void testAlexNet(bool debug) {
     // Initialize Layers
     const int layerNum = 8;
     LayerABC* layer_test[layerNum]; 
-    layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, bufferSize, depth1, sizeFM1, sizeK1, stride1);
-    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, bufferSize, depth2, sizeFM2, sizeK2, stride2);
-    layer_test[2] = new LayerConv(3, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, numK3, lutNum, af, bufferSize, depth3, sizeFM3, sizeK3, stride3);
-    layer_test[3] = new LayerConv(4, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, numK4, lutNum, af, bufferSize, depth4, sizeFM4, sizeK4, stride4);
-    layer_test[4] = new LayerConv(5, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight5, numK5, lutNum, af, bufferSize, depth5, sizeFM5, sizeK5, stride5);
+    layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, sizeFM1*(sizeK1-1)+1+sizeK1/*bufferSize*/, depth1, sizeFM1, sizeK1, stride1);
+    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, sizeFM2*(sizeK2-1)+1+sizeK2/*bufferSize*/, depth2, sizeFM2, sizeK2, stride2);
+    layer_test[2] = new LayerConv(3, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, numK3, lutNum, af, sizeFM3*(sizeK3-1)+1+sizeK3/*bufferSize*/, depth3, sizeFM3, sizeK3, stride3);
+    layer_test[3] = new LayerConv(4, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, numK4, lutNum, af, sizeFM4*(sizeK4-1)+1+sizeK4/*bufferSize*/, depth4, sizeFM4, sizeK4, stride4);
+    layer_test[4] = new LayerConv(5, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight5, numK5, lutNum, af, sizeFM4*(sizeK4-1)+1+sizeK4/*bufferSize*/, depth5, sizeFM5, sizeK5, stride5);
     layer_test[5] = new LayerFC(6, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight6, outNum6, lutNum, af);
     layer_test[6] = new LayerFC(7, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight7, outNum7, lutNum, af);
     layer_test[7] = new LayerFC(8, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight8, outNum8, lutNum, af);

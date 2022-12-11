@@ -74,13 +74,14 @@ Tile::Tile(/*size_t sizeK, size_t numK, size_t channelDepth, */int devicePrecisi
     // set latency for a layer VMM
     // set more complex model with ADC config
     latencyVMM_ =  10 // array
-                 + 10 * ((arraySizeX_ - 1) / numADC_ + 1) // ADC conversion
+                 + dataPrecision * ((arraySizeX_ - 1) / numADC_ + 1) // ADC conversion
                  + 2 // other digital logic
                  + ceil(log2(arrayNumX_)) * concHTree_ // tile concacetenation
                  + ceil(log2(arrayNumY_)) * addHTree_ // tile partial sum
                  ;
 
-    
+    // For # adder is array column
+    addHTree_ = arrayNumX_;
 }
 
 void Tile::changeState(long long int clockTime)
