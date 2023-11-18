@@ -21,7 +21,7 @@ int main() {
     bool debug = true;
 
     testLeNet(debug);
-    //testAlexNet();
+    //testAlexNet(debug);
 
     return 0;
 }
@@ -34,7 +34,7 @@ void testLeNet(bool debug) {
     int devicePrecision = 4;
     size_t arraySizeX = 128;
     size_t arraySizeY = 128;
-    size_t numADC = 64;
+    size_t numADC = 4;
     // LUT configuration
     int lutNum = 2;
     std::string af = "ReLU";
@@ -241,7 +241,7 @@ void testAlexNet(bool debug) {
     // Initialize data to be processed
     size_t inPixel = 0;
     size_t outCount = 0; 
-    size_t inputNum = 1;
+    size_t inputNum = 2;
     
     while (outCount < inputNum) {
         // Request Data from back to forward
