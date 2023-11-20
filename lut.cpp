@@ -47,7 +47,7 @@ LUT::LUT(size_t outNum, int lutNum, std::string af) : outNum_(outNum), lutNum_(l
     if (dataPrecision * lutNum_ < busWidth) { // constraind by LUT numbers
         outLatency_ = (int) ((outNum_ - 1) / lutNum_ + 1);
     }
-    else if (dataPrecision * lutNum_ < busWidth) { // constraind by bus
+    else if (dataPrecision * lutNum_ >= busWidth) { // constraind by bus
         // clock cycles to convert one data conversion
         int cycle4conversion = (int) ((busWidth - 1) / (dataPrecision * lutNum_) + 1);
         outLatency_ = (int) ((outNum_ - 1) / lutNum_ + 1) * cycle4conversion; 

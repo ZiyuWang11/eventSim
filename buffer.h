@@ -21,6 +21,7 @@ private:
     size_t sizeOFM_;
     size_t sizeK_; // conv kernel size (2D)
     size_t stride_; // stride of conv kernel
+    size_t padding_;
     // data
     size_t dataNum_; // number of valid data in the bufer
     std::vector<std::vector<int>> bufferData_;
@@ -45,7 +46,7 @@ public:
     Buffer();
 
     // Constructor
-    Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride);
+    Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding);
 
     ~Buffer();
 

@@ -22,13 +22,14 @@ Buffer::Buffer()
     sizeFM_ = 28;
     sizeK_ = 3;
     stride_ = 1;
+    padding_ = 0;
     dataNum_ = 0;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth_, 0));
 }
 
 
 // Constructor
-Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride)
+Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding)
 {
     // std::cout << "Constructor" << std::endl;
     headEventBuffer_ = false;
@@ -40,6 +41,7 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     sizeFM_ = sizeFM;
     sizeK_ = sizeK;
     stride_ = stride;
+    padding_ = padding;
     sizeOFM_ = (sizeFM_ - sizeK_) / stride_ + 1;
     step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
     stepCol_ = 0;

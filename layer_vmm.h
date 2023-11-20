@@ -27,9 +27,6 @@ public:
      * For Convenience, Add An InputSet for the First Layer
      */
 
-    // Input Methods    
-    // virtual void setInputFirst(std::vector<int> data) =0; // Pure Virtual Function
-
     // Output response methods
     virtual bool getRequest() const;
 
