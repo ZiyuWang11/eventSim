@@ -10,7 +10,7 @@ BUILD_DIR = ./build
 //SRCS = tile.cpp tile_test.cpp
 //SRCS = lut.cpp lut_test.cpp
 //SRCS = buffer.cpp tile.cpp lut.cpp layer.cpp layer_test.cpp
-SRCS = buffer.cpp tile.cpp lut.cpp layerabc.cpp layer_vmm.cpp layer_conv.cpp layer_fc.cpp main.cpp
+SRCS = buffer.cpp tile.cpp lut.cpp pooling.cpp layerabc.cpp layer_vmm.cpp layer_conv.cpp layer_fc.cpp layer_pooling.cpp main.cpp
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:.o=.d)
 

@@ -103,9 +103,9 @@ public:
      * Change it latter if needed
      */
 
-    int sendTime(); 
+    int sendTime() const; 
 
-    void setOutTime(long long int clockTime);
+    void setOutTime(long long int clockTime,  int latency = 0);
 
     /* Return the input data send to array
      * This method will be called by the owner layer setBuffer2tile() method

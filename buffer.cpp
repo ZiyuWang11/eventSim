@@ -134,16 +134,16 @@ bool Buffer::sendRdy() const
 }
 
 // return the latency for sending data from buffer to tile
-int Buffer::sendTime()
+int Buffer::sendTime() const
 {
     return buffer2tileLatency_;
 }
 
 // shedule ready time for the input data
-void Buffer::setOutTime(long long int clockTime)
+void Buffer::setOutTime(long long int clockTime, int latency)
 {
     // schedule the time for tailPtr
-    tailEventTime_ = clockTime + buffer2tileLatency_;
+    tailEventTime_ = clockTime + buffer2tileLatency_ + latency;
 }
 
 // send data to array - constrained by bus width
