@@ -42,9 +42,9 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     sizeK_ = sizeK;
     stride_ = stride;
     padding_ = padding;
-    sizeOFM_ = (sizeFM_ - sizeK_) / stride_ + 1;
-    step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
-    stepCol_ = 0;
+    sizeOFM_ = (sizeFM_ - sizeK_ + 2 * padding_) / stride_ + 1;
+    stepCol_ = 0; // stepCol_ < (sizeFM_ - sizeK_) / stride_ + 1;
+    stepRow_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
     dataNum_ = 0;
@@ -87,25 +87,41 @@ void Buffer::movePtr(long long int clockTime)
 
     // send one conv window
     if (clockTime == tailEventTime_) {
-        if (stepCol_ < sizeOFM_) {
-            if (step_ < sizeOFM_) {
-                tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-                dataNum_ -= stride_;
-                ++step_;
-            }
-            else {
-                tailPtr_ = (tailPtr_ + sizeK_ + (stride_ - 1) * sizeFM_) % bufferSize_;
-                dataNum_ -= sizeK_ + (stride_ - 1) * sizeFM_;
-                step_ = 0;
+        // Boundary data - Do not discard old data (No Ptr move)
+        if (stepRow_ < padding_) {
+            if (stepCol_ < sizeOFM_) {
                 ++stepCol_;
             }
+            else {
+                stepCol_ = 0;
+                ++stepRow_;
+            }
         }
+        // Move Ptr Cases
+        else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
+            if (stepCol_ < padding_) {
+                ++stepCol_;
+            }
+            else if ((stepCol_ >= padding_) && (stepCol_ < sizeOFM_)) {
+                tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+                dataNum_ -= stride_;
+                ++stepCol_;
+            }
+            else {
+                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+                dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
+                stepCol_ = 0;
+                ++stepRow_;
+            }
+        }
+        // Reach the end - discard all data
         else {
-            tailPtr_ = (tailPtr_ + sizeK_ + (sizeK_ - 1) * sizeFM_) % bufferSize_;
-            dataNum_ -= sizeK_ + (sizeK_ - 1) * sizeFM_;
-            step_ = 0;
+            tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_) % bufferSize_;
+            dataNum_ -= sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_;
             stepCol_ = 0;
+            stepRow_ = 0;
         }
+
         tailEventBuffer_ = false; // event terminate
     }
 }
