@@ -58,6 +58,7 @@ public:
     virtual void setComp(long long int clockTime) {};
 
     virtual void layerConfig() const {};
+    
 };
 
 #endif // LAYER_POOLING_H_

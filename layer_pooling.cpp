@@ -52,12 +52,12 @@ std::vector<int> LayerPooling::outData()
 
 int LayerPooling::outTime() const
 {
-    return buffer.sendTime();
+    return buffer.sendTime() + pooling.getTime();
 }
 
 void LayerPooling::setOutTime(long long int clockTime)
 {
-    buffer.setOutTime(clockTime);
+    buffer.setOutTime(clockTime, pooling.getTime());
 }
 
 void LayerPooling::changeState(long long int clockTime)

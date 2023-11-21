@@ -36,12 +36,12 @@ std::vector<int> Pooling::compute(std::vector<int> dataIn)
     }
 
     std::vector<int> dataOut;
-    for (int i = 0; i < dataIn.size(); ++i) {
+    for (int i = 0; i < dataInReshape.size(); ++i) {
         if (poolingType_ == "Max") {
-            dataOut[i] = *std::max_element(dataInReshape[i].begin(), dataInReshape[i].end());
+            dataOut.push_back(*std::max_element(dataInReshape[i].begin(), dataInReshape[i].end()));
         }
         else if (poolingType_ == "Ave") {
-            dataOut[i] = std::accumulate(dataInReshape[i].begin(), dataInReshape[i].end(), 0.0) / dataInReshape[i].size();
+            dataOut.push_back(std::accumulate(dataInReshape[i].begin(), dataInReshape[i].end(), 0.0) / dataInReshape[i].size());
         }
     }
 

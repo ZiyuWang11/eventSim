@@ -62,7 +62,6 @@ void testLeNetPooling(bool debug) {
     size_t numK2 = 6;
     Eigen::MatrixXf weight2 = Eigen::MatrixXf::Ones(sizeK2*sizeK2*depth2, numK2);
 
-
     // Layer 3 configuration
     size_t sizeFM3 = 14;
     size_t sizeK3 = 5;
@@ -81,7 +80,6 @@ void testLeNetPooling(bool debug) {
     size_t numK4 = 16;
     Eigen::MatrixXf weight4 = Eigen::MatrixXf::Ones(sizeK4*sizeK4*depth4, numK4);
 
-
     // Layer 5 FC configuration
     size_t outNum5 = 120;
     Eigen::MatrixXf weight5 = Eigen::MatrixXf::Ones(numK4*5*5, outNum5);
@@ -98,11 +96,11 @@ void testLeNetPooling(bool debug) {
     const int layerNum = 7;
     LayerABC* layer_test[layerNum]; 
     layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, /*sizeFM1*(sizeK1-1)+1+sizeK1*/bufferSize, depth1, sizeFM1, sizeK1, stride1, padding1);
-    // layer_test[1] = new LayerPooling(2, "Pooling", "Ave", /*sizeFM2*(sizeK2-1)+1+sizeK2*/bufferSize, depth2, sizeFM2, sizeK2, stride2, padding2);
-    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, /*sizeFM2*(sizeK2-1)+1+sizeK2*/bufferSize, depth2, sizeFM2, sizeK2, stride2, padding2);
+    layer_test[1] = new LayerPooling(2, "Pooling", "Ave", /*sizeFM2*(sizeK2-1)+1+sizeK2*/bufferSize, depth2, sizeFM2, sizeK2, stride2, padding2);
+    // layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK2, lutNum, af, /*sizeFM2*(sizeK2-1)+1+sizeK2*/bufferSize, depth2, sizeFM2, sizeK2, stride2, padding2);
     layer_test[2] = new LayerConv(3, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, numK3, lutNum, af, /*sizeFM3*(sizeK3-1)+1+sizeK3*/bufferSize, depth3, sizeFM3, sizeK3, stride3, padding3);
-    // layer_test[3] = new LayerPooling(4, "Pooling", "Ave", /*sizeFM4*(sizeK4-1)+1+sizeK4*/bufferSize, depth4, sizeFM4, sizeK4, stride4, padding4);
-    layer_test[3] = new LayerConv(4, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, numK4, lutNum, af, /*sizeFM4*(sizeK4-1)+1+sizeK4*/bufferSize, depth4, sizeFM4, sizeK4, stride4, padding4);
+    layer_test[3] = new LayerPooling(4, "Pooling", "Ave", /*sizeFM4*(sizeK4-1)+1+sizeK4*/bufferSize, depth4, sizeFM4, sizeK4, stride4, padding4);
+    // layer_test[3] = new LayerConv(4, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, numK4, lutNum, af, /*sizeFM4*(sizeK4-1)+1+sizeK4*/bufferSize, depth4, sizeFM4, sizeK4, stride4, padding4);
     layer_test[4] = new LayerFC(5, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight5, outNum5, lutNum, af);
     layer_test[5] = new LayerFC(6, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight6, outNum6, lutNum, af);
     layer_test[6] = new LayerFC(7, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight7, outNum7, lutNum, af);
@@ -118,9 +116,8 @@ void testLeNetPooling(bool debug) {
     // Initialize data to be processed
     size_t inPixel = 0;
     size_t outCount = 0; 
-    size_t inputNum = 1;
-
-    int test_px = 0;
+    size_t inputNum = 5;
+    int cnt = 0;
     
     while (outCount < inputNum) {
         // Request Data from back to forward
