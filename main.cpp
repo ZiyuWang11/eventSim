@@ -46,10 +46,10 @@ void testLeNetPooling(bool debug) {
     // Layer 1 Configuration
     // NN Configuration
     size_t depth1 = 3;
-    size_t sizeFM1 = 32;
+    size_t sizeFM1 = 28;
     size_t sizeK1 = 5;
     size_t stride1 = 1;
-    size_t padding1 = 0;
+    size_t padding1 = 2;
     size_t numK1 = 6;
     Eigen::MatrixXf weight1 = Eigen::MatrixXf::Ones(sizeK1*sizeK1*depth1, numK1);
 
@@ -84,7 +84,7 @@ void testLeNetPooling(bool debug) {
 
     // Layer 5 FC configuration
     size_t outNum5 = 120;
-    Eigen::MatrixXf weight5 = Eigen::MatrixXf::Ones(numK4*10*10, outNum5);
+    Eigen::MatrixXf weight5 = Eigen::MatrixXf::Ones(numK4*5*5, outNum5);
 
     // Layer 6 FC configuration
     size_t outNum6 = 84;
@@ -95,7 +95,7 @@ void testLeNetPooling(bool debug) {
     Eigen::MatrixXf weight7 = Eigen::MatrixXf::Ones(outNum6, outNum7);
 
     // Initialize Layers
-    const int layerNum = 6;
+    const int layerNum = 7;
     LayerABC* layer_test[layerNum]; 
     layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, /*sizeFM1*(sizeK1-1)+1+sizeK1*/bufferSize, depth1, sizeFM1, sizeK1, stride1, padding1);
     // layer_test[1] = new LayerPooling(2, "Pooling", "Ave", /*sizeFM2*(sizeK2-1)+1+sizeK2*/bufferSize, depth2, sizeFM2, sizeK2, stride2, padding2);

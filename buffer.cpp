@@ -47,7 +47,7 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     stepRow_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
-    dataNum_ = 0;
+    dataNum_ = padding_ * sizeOFM_ + padding_;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
  
