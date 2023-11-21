@@ -13,11 +13,11 @@ extern const int memLatency;
 LayerConv::LayerConv(int layerNum, std::string layerType, // Layer
                      int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, // Tile
                      size_t numOut, int lutNum, std::string af, // LUT
-                     size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding) // Buffer
+                     size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding) // Buffer
                      : LayerVMM(layerNum, layerType, 
                                 devicePrecision, arraySizeX, arraySizeY, numADC, weight, 
                                 numOut, lutNum, af),
-                       buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride, padding)
+                       buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride, padding, singlePadding)
 {
 //    std::cout << "Conv Layer Constructor!\n";
 }

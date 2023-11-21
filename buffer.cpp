@@ -29,7 +29,7 @@ Buffer::Buffer()
 
 
 // Constructor
-Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding)
+Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding)
 {
     // std::cout << "Constructor" << std::endl;
     headEventBuffer_ = false;
@@ -42,12 +42,19 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     sizeK_ = sizeK;
     stride_ = stride;
     padding_ = padding;
-    sizeOFM_ = (sizeFM_ - sizeK_ + 2 * padding_) / stride_ + 1;
+    singlePadding_ = singlePadding;
     stepCol_ = 0; // stepCol_ < (sizeFM_ - sizeK_) / stride_ + 1;
     stepRow_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
-    dataNum_ = padding_ * sizeOFM_ + padding_;
+    if (!singlePadding_) {
+        dataNum_ = padding_ * (sizeFM_ + 2 * padding_) + padding_;
+        sizeOFM_ = (sizeFM_ - sizeK_ + 2 * padding_) / stride_ + 1;
+    }
+    else {
+        dataNum_ = padding_ * sizeFM_ + padding_;
+        sizeOFM_ = (sizeFM_ - sizeK_ + padding_) / stride_ + 1;
+    }
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
  
@@ -85,41 +92,81 @@ void Buffer::movePtr(long long int clockTime)
         // std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
     }
 
-    // send one conv window
-    if (clockTime == tailEventTime_) {
-        // Boundary data - Do not discard old data (No Ptr move)
-        if (stepRow_ < padding_) {
-            if (stepCol_ < sizeOFM_) {
-                ++stepCol_;
+    if (!singlePadding_) {
+        // send one conv window
+        if (clockTime == tailEventTime_) {
+            // Boundary data - Do not discard old data (No Ptr move)
+            if (stepRow_ < padding_) {
+                if (stepCol_ < sizeOFM_) {
+                    ++stepCol_;
+                }
+                else {
+                    stepCol_ = 0;
+                    ++stepRow_;
+                }
             }
+            // Move Ptr Cases
+            else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
+                if (stepCol_ < padding_) {
+                    ++stepCol_;
+                }
+                else if ((stepCol_ >= padding_) && (stepCol_ < sizeOFM_)) {
+                    tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+                    dataNum_ -= stride_;
+                    ++stepCol_;
+                }
+                else {
+                    tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+                    dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
+                    stepCol_ = 0;
+                    ++stepRow_;
+                }
+            }
+            // Reach the end - discard all data
             else {
+                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_) % bufferSize_;
+                dataNum_ -= sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_;
                 stepCol_ = 0;
-                ++stepRow_;
+                stepRow_ = 0;
             }
         }
-        // Move Ptr Cases
-        else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
-            if (stepCol_ < padding_) {
-                ++stepCol_;
+        
+        tailEventBuffer_ = false; // event terminate
+    }
+    else {
+        // send one conv window
+        if (clockTime == tailEventTime_) {
+            // Boundary data - Do not discard old data (No Ptr move)
+            if (stepRow_ < padding_) {
+                if (stepCol_ < sizeOFM_) {
+                    ++stepCol_;
+                }
+                else {
+                    stepCol_ = 0;
+                    ++stepRow_;
+                }
             }
-            else if ((stepCol_ >= padding_) && (stepCol_ < sizeOFM_)) {
-                tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-                dataNum_ -= stride_;
-                ++stepCol_;
+            // Move Ptr Cases
+            else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
+                if (stepCol_ < sizeOFM_) {
+                    tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+                    dataNum_ -= stride_;
+                    ++stepCol_;
+                }
+                else {
+                    tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+                    dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
+                    stepCol_ = 0;
+                    ++stepRow_;
+                }
             }
+            // Reach the end - discard all data
             else {
-                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
-                dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
+                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - 1) * sizeFM_) % bufferSize_;
+                dataNum_ -= sizeK_ - padding_ + (sizeK_ - 1) * sizeFM_;
                 stepCol_ = 0;
-                ++stepRow_;
+                stepRow_ = 0;
             }
-        }
-        // Reach the end - discard all data
-        else {
-            tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_) % bufferSize_;
-            dataNum_ -= sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_;
-            stepCol_ = 0;
-            stepRow_ = 0;
         }
 
         tailEventBuffer_ = false; // event terminate

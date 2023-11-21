@@ -13,10 +13,10 @@ extern const int busWidth;
 
 LayerPooling::LayerPooling(int layerNum, std::string layerType, // Layer
                             std::string poolingType, // Pooling
-                            size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding) // Buffer
+                            size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding) // Buffer
                             : LayerABC(layerNum, layerType), 
                             pooling(bufferDepth, sizeK, poolingType),
-                            buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride, padding)
+                            buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride, padding, singlePadding)
 {
 
 }

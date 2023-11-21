@@ -21,7 +21,7 @@ private:
 public:
     LayerPooling(int layerNum, std::string layerType, // Layer
                 std::string poolingType, // Pooling
-                size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding); // Buffer
+                size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding = false); // Buffer
 
     ~LayerPooling() {};
 
