@@ -38,6 +38,8 @@ public:
 
     // Hardware Configuration
     virtual void layerConfig() const;
+
+    virtual void checkBuffer() const {};
 };
 
 #endif // LAYER_FC_H_

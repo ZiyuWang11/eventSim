@@ -105,7 +105,7 @@ public:
 
     int sendTime() const; 
 
-    void setOutTime(long long int clockTime,  int latency = 0);
+    void setOutTime(long long int clockTime, int latency = 0);
 
     /* Return the input data send to array
      * This method will be called by the owner layer setBuffer2tile() method
@@ -117,5 +117,7 @@ public:
     void visTest() const;
 
     void bufferConfig() const;
+
+    void showDataNum() const;
 };
 #endif //BUFFER_H_

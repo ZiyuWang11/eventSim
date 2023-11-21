@@ -198,6 +198,13 @@ void Buffer::bufferConfig() const
     std::cout << "Channel Depth:" << bufferData_[0].size() << std::endl;
 }
 
+void Buffer::showDataNum() const 
+{
+    std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
+    std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
+    std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
+}
+
 // Destructor
 Buffer::~Buffer()
 {

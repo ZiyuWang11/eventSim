@@ -6,6 +6,7 @@
 #include "pooling.h"
 #include "layerabc.h"
 #include "layer_pooling.h"
+#include <iostream>
 
 extern const int dataPrecision;
 extern const int busWidth;
@@ -51,12 +52,12 @@ std::vector<int> LayerPooling::outData()
 
 int LayerPooling::outTime() const
 {
-    return buffer.sendTime() + pooling.getTime();
+    return buffer.sendTime();
 }
 
 void LayerPooling::setOutTime(long long int clockTime)
 {
-    buffer.setOutTime(clockTime, pooling.getTime());
+    buffer.setOutTime(clockTime);
 }
 
 void LayerPooling::changeState(long long int clockTime)

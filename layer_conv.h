@@ -44,6 +44,8 @@ public:
 
     // Hardware Configuration
     virtual void layerConfig() const;
+
+    virtual void checkBuffer() const {buffer.showDataNum();}
 };
 
 #endif // LAYER_CONV_H_

@@ -43,6 +43,21 @@ public:
 
     // State Change Methods
     virtual void changeState(long long int clockTime);
+
+    virtual void checkBuffer() const {buffer.showDataNum();}
+
+    // Not used methods
+    virtual void setInputFirst(std::vector<int> data) {};
+
+    virtual bool buffer2tile() const { return false;}
+
+    virtual void setBuffer2Tile(long long int clockTime) {};
+
+    virtual bool rdy4comp() const { return false; }
+
+    virtual void setComp(long long int clockTime) {};
+
+    virtual void layerConfig() const {};
 };
 
 #endif // LAYER_POOLING_H_

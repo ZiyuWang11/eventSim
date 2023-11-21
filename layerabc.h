@@ -64,6 +64,8 @@ public:
 
     // Hardware Configuration
     virtual void layerConfig() const =0;
+
+    virtual void checkBuffer() const =0;
 };
 
 #endif // LAYERABC_H_
