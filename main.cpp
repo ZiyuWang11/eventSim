@@ -27,7 +27,7 @@ int main() {
     bool debug = true;
 
     // Change the Reference - 1) LeNet, 2) AlexNet, 3) Vgg, 4) ResNet
-    void (*testFunction) (bool) = &testResNet;
+    void (*testFunction) (bool) = &testLeNet;
 
     (*testFunction)(debug);
 

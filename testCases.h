@@ -31,6 +31,17 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
         }
 
         for (int i = layerNum - 1; i > 0; --i) {
+            // if (clock > 2164273) {
+                // std::cout << "Layer - " << i + 1<< ": Send Request - " << layer_test[i]->sendRequest() << std::endl;
+                // std::cout << "Layer - " << i << ": Get Request - " << layer_test[i-1]->getRequest() << std::endl;
+                // layer_test[i-1]->checkBuffer();
+                // std::cout << std::endl;
+            //     if (layer_test[1]->sendRequest()) {
+            //         std::cout << "Abort" << std::endl;
+            //         abort();
+            //     }
+            // }
+
             // Check if data can be pass through two layers
             if (layer_test[i]->sendRequest() && layer_test[i-1]->getRequest()) {
                 if (debug) std::cout << "Send data from Layer " << i << " to Layer " << i+1 << " at clock " << clock << std::endl;
@@ -39,6 +50,7 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
                 layer_test[i]->setInput(layer_test[i-1]);
                 layer_test[i]->setInputTime(clock, layer_test[i-1]);
                 layer_test[i-1]->setOutTime(clock);
+                // std::cout << "Here" << std::endl;
             }
         }
 
@@ -79,6 +91,8 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
     
     printf("==========================\n");
     printf("Terminate at Clock %lld\n", clock);
+    std::cout << outCount << std::endl;
+    std::cout << inPixel << std::endl;
     printf("==========================\n");
 
 }
@@ -143,13 +157,17 @@ void testLeNet(bool debug) {
     size_t outNum7 = 10;
     Eigen::MatrixXf weight7 = Eigen::MatrixXf::Ones(outNum6, outNum7);
 
+    Eigen::MatrixXf weight2 = Eigen::MatrixXf::Ones(sizeK2*sizeK2*depth2, numK1);
+    Eigen::MatrixXf weight4 = Eigen::MatrixXf::Ones(sizeK4*sizeK4*depth4, numK3);
     // Initialize Layers
     const int layerNum = 7;
     LayerABC* layer_test[layerNum]; 
     layer_test[0] = new LayerConv(1, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight1, numK1, lutNum, af, bufferSize[0], depth1, sizeFM1, sizeK1, stride1, padding1);
-    layer_test[1] = new LayerPooling(2, "Pooling", "Ave", bufferSize[1], depth2, sizeFM2, sizeK2, stride2, padding2);
+    layer_test[1] = new LayerConv(2, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight2, numK1, lutNum, af, bufferSize[1], depth2, sizeFM2, sizeK2, stride2, padding2);
+    // layer_test[1] = new LayerPooling(2, "Pooling", "Ave", bufferSize[1], depth2, sizeFM2, sizeK2, stride2, padding2);
     layer_test[2] = new LayerConv(3, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight3, numK3, lutNum, af, bufferSize[2], depth3, sizeFM3, sizeK3, stride3, padding3);
-    layer_test[3] = new LayerPooling(4, "Pooling", "Ave", bufferSize[3], depth4, sizeFM4, sizeK4, stride4, padding4);
+    layer_test[3] = new LayerConv(4, "Conv", devicePrecision, arraySizeX, arraySizeY, numADC, weight4, numK3, lutNum, af, bufferSize[3], depth4, sizeFM4, sizeK4, stride4, padding4);
+    // layer_test[3] = new LayerPooling(4, "Pooling", "Ave", bufferSize[3], depth4, sizeFM4, sizeK4, stride4, padding4);
     layer_test[4] = new LayerFC(5, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight5, outNum5, lutNum, af);
     layer_test[5] = new LayerFC(6, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight6, outNum6, lutNum, af);
     layer_test[6] = new LayerFC(7, "FC", devicePrecision, arraySizeX, arraySizeY, numADC, weight7, outNum7, lutNum, af);
@@ -160,7 +178,7 @@ void testLeNet(bool debug) {
 // AlexNet Test - 5 Conv + 3 FC + 3 Pooling
 void testAlexNet(bool debug) { 
     // Input Configuration
-    size_t inputNum = 2;
+    size_t inputNum = 1;
     // Buffer Configuration for inifinite buffer
     size_t bufferSize[8] = {10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000};
     // Tile Configuration
