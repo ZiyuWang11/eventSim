@@ -87,7 +87,7 @@ public:
      * Once an event is scheduled, check time every clock until event executed
      * This method operate abovementioned step (ii)
      */
-    void movePtr(long long int clockTime, bool tempDebug = false);
+    void movePtr(long long int clockTime);
 
     //////////////////////////
     //                      //

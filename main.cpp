@@ -17,10 +17,10 @@ const int memLatency = 20;
 
 int main() {
     // If debug is true, will print debug code
-    bool debug = true;
+    bool debug = false;
 
     // Change the Reference - 1) LeNet, 2) AlexNet, 3) Vgg, 4) ResNet
-    void (*testFunction) (bool) = &testLeNetPooling;
+    void (*testFunction) (bool) = &testAlexNet;
 
     (*testFunction)(debug);
 

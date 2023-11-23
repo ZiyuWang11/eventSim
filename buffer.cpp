@@ -29,7 +29,7 @@ Buffer::Buffer()
 
 
 // Constructor
-Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding, size_t padding, bool singlePadding)
+Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding)
 {
     // std::cout << "Constructor" << std::endl;
     headEventBuffer_ = false;
@@ -43,7 +43,6 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     stride_ = stride;
     padding_ = padding;
     padding_ = padding;
-    singlePadding_ = singlePadding;
     singlePadding_ = singlePadding;
     step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
     stepCol_ = 0;
@@ -91,45 +90,23 @@ void Buffer::loadData(std::vector<int> data)
 }
 
 // move headPtr for new data after loading latency
-void Buffer::movePtr(long long int clockTime, bool tempDebug)
+void Buffer::movePtr(long long int clockTime)
 {
-    // if (tempDebug && clockTime > 415538) {
-    //     std::cout << "Send Rdy " << this->sendRdy() << std::endl;
-    //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-    //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-    //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-    // }
-    // load one data, headPtr moves forward
     if (clockTime == headEventTime_) {
         headPtr_ = (headPtr_ + 1) % bufferSize_;
         ++dataNum_;
         inputFMCnt_ = (inputFMCnt_ + 1) % (sizeFM_ * sizeFM_);
         headEventBuffer_ = false; // event terminate
-        // std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
-        // if (tempDebug && inputFMCnt_ == 1) {
-        //     std::cout << "Input FM load a px down at " << clockTime << ", size - " << inputFMCnt_ << std::endl;
-        //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-        //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-        //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-        //     // std::cout << "Load Rdy " << this->loadRdy() << std::endl;
-        // }
 
         if (inputFMCnt_ % (sizeFM_ * sizeFM_) == 0) {
-            if (tempDebug) {
-                std::cout << "Input FM load down at " << clockTime << ", size - " << inputFMCnt_ << std::endl;
-                std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-                std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-                std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-                // std::cout << "Send Rdy " << this->sendRdy() << std::endl;
-            }
             if (singlePadding_) {
                 for (int i = 0; i < padding_; ++i) {
                     int idx = headPtr_ + i;
                     bufferData_[idx] = std::vector<int>(bufferDepth_, 0);
                 }
                 
-                headPtr_ = (headPtr_ + padding_) % bufferSize_;
-                dataNum_ += padding_;
+                headPtr_ = (headPtr_ + padding_ + padding_ * sizeFMwPadding_) % bufferSize_;
+                dataNum_ += padding_ + padding_ * sizeFMwPadding_;
             }
             else {
                 for (int i = 0; i < padding_ + padding_ * sizeFMwPadding_; ++i) {
@@ -139,25 +116,10 @@ void Buffer::movePtr(long long int clockTime, bool tempDebug)
                 
                 headPtr_ = (headPtr_ + padding_ + padding_ * sizeFMwPadding_ + padding_ * sizeFMwPadding_ + padding_) % bufferSize_;
                 dataNum_ += padding_ + padding_ * sizeFMwPadding_ + padding_ * sizeFMwPadding_ + padding_;
-
-                if (tempDebug) std::cout << "Here" << padding_ * sizeFMwPadding_ + padding_ << std::endl;
-            }
-            if (tempDebug) {
-                std::cout << "Input FM load down at " << clockTime << ", size - " << inputFMCnt_ << std::endl;
-                std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-                std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-                std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-                // std::cout << "Send Rdy " << this->sendRdy() << std::endl;
             }
         }
         // Load a row of input FM
         else if (inputFMCnt_ % sizeFM_ == 0) {
-            // if (tempDebug) {
-            //     std::cout << "Input FM load a row down at " << clockTime << ", size - " << inputFMCnt_ << std::endl;
-            //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-            //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-            //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-            // }
             if (singlePadding_) {
                 for (int i = 0; i < padding_; ++i) {
                     int idx = headPtr_ + i;
@@ -181,14 +143,6 @@ void Buffer::movePtr(long long int clockTime, bool tempDebug)
 
     // send one conv window
     if (clockTime == tailEventTime_) {
-        // if (tempDebug) {
-        //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-        //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-        //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-        //     std::cout << std::endl;
-        //     // std::cout << "Load Rdy " << this->loadRdy() << std::endl;
-        // }
-
         if (stepCol_ < sizeOFM_) {
             if (step_ < sizeOFM_) {
                 tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
@@ -201,30 +155,13 @@ void Buffer::movePtr(long long int clockTime, bool tempDebug)
                 dataNum_ -= sizeK_ + (stride_ - 1) * sizeFMwPadding_;
                 step_ = 0;
                 ++stepCol_;
-
             }
         }
         else {
-            // if (tempDebug) {
-            //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-            //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-            //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-            //     std::cout << std::endl;
-            //     // std::cout << "Load Rdy " << this->loadRdy() << std::endl;
-            // }
-
             tailPtr_ = (tailPtr_ + sizeK_ + (sizeK_ - 1) * sizeFMwPadding_) % bufferSize_;
             dataNum_ -= sizeK_ + (sizeK_ - 1) * sizeFMwPadding_;
             step_ = 0;
             stepCol_ = 0;
-
-            // if (tempDebug) {
-            //     std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-            //     std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-            //     std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
-            //     std::cout << std::endl;
-            //     // std::cout << "Load Rdy " << this->loadRdy() << std::endl;
-            // }
         }
 
         tailEventBuffer_ = false; // event terminate
@@ -303,13 +240,6 @@ void Buffer::bufferConfig() const
     printf("====================\n");
     std::cout << "Buffer Size: " << bufferData_.size() << std::endl;
     std::cout << "Channel Depth:" << bufferData_[0].size() << std::endl;
-}
-
-void Buffer::showDataNum() const 
-{
-    std::cout << "Buffer Data Number: " << dataNum_ << std::endl;
-    std::cout << "Buffer Head Ptr: " << headPtr_ << std::endl;
-    std::cout << "Buffer Tail Ptr: " << tailPtr_ << std::endl;
 }
 
 void Buffer::showDataNum() const 
