@@ -69,7 +69,27 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
 // check if ready to load new data
 bool Buffer::loadRdy() const
 {
-    return (tailPtr_ != (headPtr_ + 1) % bufferSize_) && !headEventBuffer_;
+    if ((inputFMCnt_ + 1) % (sizeFM_ * sizeFM_) == 0) {
+        // std::cout << "Corner" << std::endl;
+        int distance = padding_ + padding_ * sizeFMwPadding_ + padding_ * sizeFMwPadding_ + padding_;
+        bool loadAvailable = true;
+        for (int i = 0; i <= distance; ++i) {
+            loadAvailable &= (tailPtr_ != (headPtr_ + 1 + distance) % bufferSize_);
+        }
+        return loadAvailable && !headEventBuffer_;
+    }
+    else if ((inputFMCnt_ + 1) % sizeFM_ == 0) {
+        // std::cout << "Edge" << std::endl;
+        int distance = 2 * padding_;
+        bool loadAvailable = true;
+        for (int i = 0; i <= distance; ++i) {
+            loadAvailable &= (tailPtr_ != (headPtr_ + 1 + distance) % bufferSize_);
+        }
+        return loadAvailable && !headEventBuffer_;
+    }
+    else {
+        return (tailPtr_ != (headPtr_ + 1) % bufferSize_) && !headEventBuffer_;
+    }
 }
 
 // shedule ready time for the input data
@@ -101,7 +121,7 @@ void Buffer::movePtr(long long int clockTime)
         if (inputFMCnt_ % (sizeFM_ * sizeFM_) == 0) {
             if (singlePadding_) {
                 for (int i = 0; i < padding_; ++i) {
-                    int idx = headPtr_ + i;
+                    int idx = (headPtr_ + i) % bufferSize_;
                     bufferData_[idx] = std::vector<int>(bufferDepth_, 0);
                 }
                 
@@ -110,7 +130,7 @@ void Buffer::movePtr(long long int clockTime)
             }
             else {
                 for (int i = 0; i < padding_ + padding_ * sizeFMwPadding_; ++i) {
-                    int idx = headPtr_ + i;
+                    int idx = (headPtr_ + i) % bufferSize_;
                     bufferData_[idx] = std::vector<int>(bufferDepth_, 0);
                 }
                 
@@ -122,7 +142,7 @@ void Buffer::movePtr(long long int clockTime)
         else if (inputFMCnt_ % sizeFM_ == 0) {
             if (singlePadding_) {
                 for (int i = 0; i < padding_; ++i) {
-                    int idx = headPtr_ + i;
+                    int idx = (headPtr_ + i) % bufferSize_;
                     bufferData_[idx] = std::vector<int>(bufferDepth_, 0);
                 }
 
@@ -131,7 +151,7 @@ void Buffer::movePtr(long long int clockTime)
             }
             else {
                 for (int i = 0; i < 2 * padding_; ++i) {
-                    int idx = headPtr_ + i;
+                    int idx = (headPtr_ + i) % bufferSize_;
                     bufferData_[idx] = std::vector<int>(bufferDepth_, 0);
                 }
 

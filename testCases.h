@@ -32,6 +32,7 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
 
         for (int i = layerNum - 1; i > 0; --i) {
             // Check if data can be pass through two layers
+            // std::cout << "Ready Get Data at Layer " << i << " : "<< layer_test[i]->sendRequest() << std::endl;
             if (layer_test[i]->sendRequest() && layer_test[i-1]->getRequest()) {
                 if (debug) std::cout << "Send data from Layer " << i << " to Layer " << i+1 << " at clock " << clock << std::endl;
                 // Set Input and Input Time
@@ -90,7 +91,7 @@ void testLeNet(bool debug) {
     // Input Configuration
     size_t inputNum = 10;
     // Buffer Configuration for inifinite buffer
-    size_t bufferSize[4] = {10000, 10000, 10000, 10000};
+    size_t bufferSize[4] = {134, 135, 135, 135};
     // Tile Configuration
     int devicePrecision = 4;
     size_t arraySizeX = 128;
