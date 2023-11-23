@@ -14,7 +14,7 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
     for (int i = 0; i < layerNum; ++i) {
         layer_test[i]->layerConfig();
     }
-
+/*
     // Initialize clock
     long long int clock = 1;
 
@@ -94,7 +94,7 @@ void testCode(bool debug, size_t layerNum, LayerABC** layer_test, size_t inputWi
     std::cout << outCount << std::endl;
     std::cout << inPixel << std::endl;
     printf("==========================\n");
-
+*/
 }
 
 // LeNet Test - 2 Conv + 3 FC + 2 Pooling

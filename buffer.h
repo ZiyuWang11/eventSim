@@ -27,8 +27,10 @@ private:
     size_t dataNum_; // number of valid data in the bufer
     std::vector<std::vector<int>> bufferData_;
     // how many steps per row
+    size_t step_;
     size_t stepCol_;
-    size_t stepRow_;
+    // loaded px in input FM
+    size_t inputFMCnt_;
     // evnet timing
     bool headEventBuffer_; // event for loading data
     long long int headEventTime_; // event for loading data

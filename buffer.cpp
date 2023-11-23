@@ -43,8 +43,9 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
     stride_ = stride;
     padding_ = padding;
     singlePadding_ = singlePadding;
-    stepCol_ = 0; // stepCol_ < (sizeFM_ - sizeK_) / stride_ + 1;
-    stepRow_ = 0;
+    step_ = 0; // step_ < (sizeFM_ - sizeK_) / stride_ + 1;
+    stepCol_ = 0;
+    inputFMCnt_ = 0;
     headPtr_ = 0;
     tailPtr_ = 0;
     if (!singlePadding_) {
@@ -52,12 +53,15 @@ Buffer::Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t size
         sizeOFM_ = (sizeFM_ - sizeK_ + 2 * padding_) / stride_ + 1;
     }
     else {
-        dataNum_ = padding_ * sizeFM_ + padding_;
+        dataNum_ = padding_ * (sizeFM_ + padding_);
         sizeOFM_ = (sizeFM_ - sizeK_ + padding_) / stride_ + 1;
     }
+    std::cout << "Data number - " << dataNum_ << std::endl;
+    headPtr_ = (headPtr_ + dataNum_) % bufferSize_;
+    std::cout << "Head Ptr - " << headPtr_ << std::endl;
     bufferData_.resize(bufferSize_, std::vector<int>(bufferDepth, 0));
     buffer2tileLatency_ = sizeK_ * sizeK_ * bufferDepth_ * dataPrecision / busWidth;
- 
+
 }
 
 // check if ready to load new data
@@ -77,7 +81,9 @@ void Buffer::setInTime(long long int clockTime, int latency)
 // load data to one block of the buffer
 void Buffer::loadData(std::vector<int> data)
 {
+
     bufferData_[headPtr_] = data;
+
     headEventBuffer_ = true;
 }
 
@@ -86,91 +92,66 @@ void Buffer::movePtr(long long int clockTime)
 {
     // load one data, headPtr moves forward
     if (clockTime == headEventTime_) {
-        headPtr_ = (headPtr_ + 1) % bufferSize_;
-        ++dataNum_;
+        // Load all input FM
+        if ((inputFMCnt_ + 1) % (sizeFM_ * sizeFM_) == 0) {
+            if (singlePadding_) {
+                headPtr_ = (headPtr_ + 1 + padding_) % bufferSize_;
+                dataNum_ += 1 + padding_;
+            }
+            else {
+                headPtr_ = (headPtr_ + 1 + padding_ + padding_ * (sizeFM_ + 2 * padding_)) % bufferSize_;
+                dataNum_ += 1 + padding_ + padding_ * (sizeFM_ + 2 * padding_);
+            }
+
+            inputFMCnt_ = 0;
+        }
+        // Load a row of input FM
+        else if ((inputFMCnt_ + 1) % sizeFM_ == 0) {
+            if (singlePadding_) {
+                headPtr_ = (headPtr_ + 1 + padding_) % bufferSize_;
+                dataNum_ += 1 + padding_;
+                ++inputFMCnt_;
+            }
+            else {
+                headPtr_ = (headPtr_ + 1 + 2 * padding_) % bufferSize_;
+                dataNum_ += 1 + 2 * padding_;
+                ++inputFMCnt_;
+            }
+        }
+        else {
+            headPtr_ = (headPtr_ + 1) % bufferSize_;
+            ++dataNum_;
+            ++inputFMCnt_;
+        }
+
         headEventBuffer_ = false; // event terminate
         // std::cout << "Load data to input buffer at Clock = " << clockTime << std::endl;
     }
 
-    if (!singlePadding_) {
-        // send one conv window
-        if (clockTime == tailEventTime_) {
-            // Boundary data - Do not discard old data (No Ptr move)
-            if (stepRow_ < padding_) {
-                if (stepCol_ < sizeOFM_) {
-                    ++stepCol_;
-                }
-                else {
-                    stepCol_ = 0;
-                    ++stepRow_;
-                }
+    // send one conv window
+    if (clockTime == tailEventTime_) {
+        if (stepCol_ < sizeOFM_) {
+            if (step_ < sizeOFM_) {
+                tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
+                dataNum_ -= stride_;
+                ++step_;
             }
-            // Move Ptr Cases
-            else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
-                if (stepCol_ < padding_) {
-                    ++stepCol_;
-                }
-                else if ((stepCol_ >= padding_) && (stepCol_ < sizeOFM_)) {
-                    tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-                    dataNum_ -= stride_;
-                    ++stepCol_;
-                }
-                else {
-                    tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
-                    dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
-                    stepCol_ = 0;
-                    ++stepRow_;
-                }
-            }
-            // Reach the end - discard all data
             else {
-                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_) % bufferSize_;
-                dataNum_ -= sizeK_ - padding_ + (sizeK_ - padding_ - 1) * sizeFM_;
-                stepCol_ = 0;
-                stepRow_ = 0;
+                tailPtr_ = (tailPtr_ + sizeK_ + (stride_ - 1) * sizeFM_) % bufferSize_;
+                dataNum_ -= sizeK_ + (stride_ - 1) * sizeFM_;
+                step_ = 0;
+                ++stepCol_;
             }
         }
-        
+        else {
+            tailPtr_ = (tailPtr_ + sizeK_ + (sizeK_ - 1) * sizeFM_) % bufferSize_;
+            dataNum_ -= sizeK_ + (sizeK_ - 1) * sizeFM_;
+            step_ = 0;
+            stepCol_ = 0;
+        }
         tailEventBuffer_ = false; // event terminate
     }
-    else {
-        // send one conv window
-        if (clockTime == tailEventTime_) {
-            // Boundary data - Do not discard old data (No Ptr move)
-            if (stepRow_ < padding_) {
-                if (stepCol_ < sizeOFM_) {
-                    ++stepCol_;
-                }
-                else {
-                    stepCol_ = 0;
-                    ++stepRow_;
-                }
-            }
-            // Move Ptr Cases
-            else if ((stepRow_ >= padding_) && (stepRow_ < sizeOFM_)) {
-                if (stepCol_ < sizeOFM_) {
-                    tailPtr_ = (tailPtr_ + stride_) % bufferSize_;
-                    dataNum_ -= stride_;
-                    ++stepCol_;
-                }
-                else {
-                    tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (stride_ - 1) * sizeFM_) % bufferSize_;
-                    dataNum_ -= sizeK_ - padding_ + (stride_ - 1) * sizeFM_;
-                    stepCol_ = 0;
-                    ++stepRow_;
-                }
-            }
-            // Reach the end - discard all data
-            else {
-                tailPtr_ = (tailPtr_ + sizeK_ - padding_ + (sizeK_ - 1) * sizeFM_) % bufferSize_;
-                dataNum_ -= sizeK_ - padding_ + (sizeK_ - 1) * sizeFM_;
-                stepCol_ = 0;
-                stepRow_ = 0;
-            }
-        }
 
-        tailEventBuffer_ = false; // event terminate
-    }
 }
 
 // check whether can send data to array
