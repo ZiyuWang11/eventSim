@@ -18,6 +18,7 @@ private:
     size_t tailPtr_; // tail pointer of ring FIFO
     // model configuration - which data to send
     size_t sizeFM_; // input feature map size, assume to be square
+    size_t sizeFMwPadding_;
     size_t sizeOFM_;
     size_t sizeK_; // conv kernel size (2D)
     size_t stride_; // stride of conv kernel
@@ -86,7 +87,7 @@ public:
      * Once an event is scheduled, check time every clock until event executed
      * This method operate abovementioned step (ii)
      */
-    void movePtr(long long int clockTime);
+    void movePtr(long long int clockTime, bool tempDebug = false);
 
     //////////////////////////
     //                      //

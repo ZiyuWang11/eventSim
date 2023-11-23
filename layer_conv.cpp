@@ -81,8 +81,10 @@ void LayerConv::setBuffer2Tile(long long int clockTime)
 // Change states of buffer and tile by checking clock
 void LayerConv::changeState(long long int clockTime)
 {
+    bool tempDebug_ = false;
+    // if (layerNum_ == 1) tempDebug_ = true;
     // Move the pointer in Buffer
-    buffer.movePtr(clockTime);
+    buffer.movePtr(clockTime, tempDebug_);
  
     // change the tile states
     tile.changeState(clockTime);
