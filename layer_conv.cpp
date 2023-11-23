@@ -13,11 +13,11 @@ extern const int memLatency;
 LayerConv::LayerConv(int layerNum, std::string layerType, // Layer
                      int devicePrecision, size_t arraySizeX, size_t arraySizeY, size_t numADC, const Eigen::MatrixXf& weight, // Tile
                      size_t numOut, int lutNum, std::string af, // LUT
-                     size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride) // Buffer
+                     size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding) // Buffer
                      : LayerVMM(layerNum, layerType, 
                                 devicePrecision, arraySizeX, arraySizeY, numADC, weight, 
                                 numOut, lutNum, af),
-                       buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride)
+                       buffer(bufferSize, bufferDepth, sizeFM, sizeK, stride, padding, singlePadding)
 {
 //    std::cout << "Conv Layer Constructor!\n";
 }
@@ -81,8 +81,10 @@ void LayerConv::setBuffer2Tile(long long int clockTime)
 // Change states of buffer and tile by checking clock
 void LayerConv::changeState(long long int clockTime)
 {
+    bool tempDebug_ = false;
+    // if (layerNum_ == 1) tempDebug_ = true;
     // Move the pointer in Buffer
-    buffer.movePtr(clockTime);
+    buffer.movePtr(clockTime, tempDebug_);
  
     // change the tile states
     tile.changeState(clockTime);

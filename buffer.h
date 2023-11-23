@@ -18,15 +18,20 @@ private:
     size_t tailPtr_; // tail pointer of ring FIFO
     // model configuration - which data to send
     size_t sizeFM_; // input feature map size, assume to be square
+    size_t sizeFMwPadding_;
     size_t sizeOFM_;
     size_t sizeK_; // conv kernel size (2D)
     size_t stride_; // stride of conv kernel
+    size_t padding_;
+    bool singlePadding_;
     // data
     size_t dataNum_; // number of valid data in the bufer
     std::vector<std::vector<int>> bufferData_;
     // how many steps per row
     size_t step_;
     size_t stepCol_;
+    // loaded px in input FM
+    size_t inputFMCnt_;
     // evnet timing
     bool headEventBuffer_; // event for loading data
     long long int headEventTime_; // event for loading data
@@ -45,7 +50,7 @@ public:
     Buffer();
 
     // Constructor
-    Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride);
+    Buffer(size_t bufferSize, size_t bufferDepth, size_t sizeFM, size_t sizeK, size_t stride, size_t padding, bool singlePadding = false);
 
     ~Buffer();
 
@@ -82,7 +87,7 @@ public:
      * Once an event is scheduled, check time every clock until event executed
      * This method operate abovementioned step (ii)
      */
-    void movePtr(long long int clockTime);
+    void movePtr(long long int clockTime, bool tempDebug = false);
 
     //////////////////////////
     //                      //
@@ -116,5 +121,7 @@ public:
     void visTest() const;
 
     void bufferConfig() const;
+
+    void showDataNum() const;
 };
 #endif //BUFFER_H_
